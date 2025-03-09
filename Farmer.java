@@ -50,6 +50,7 @@ class Farmer extends Thread {
 
     private void stockAnimals(List<String> animals) throws InterruptedException {
         Map<String, Integer> animalCounts = countAnimalsByType(animals);
+        int totalRemainingAnimals = animals.size();
         
         for (String animalType : animalCounts.keySet()) {
             Field chosenField = findSuitableField(animalType);
@@ -60,9 +61,12 @@ class Farmer extends Thread {
                 worldState.updateFarmerActivity(farmerName, "Walking to " + chosenField.getName() + " with " + count + " " + animalType);
                 System.out.println(farmerName + " walking to " + chosenField.getName() + " with " + count + " " + animalType);
                 
-                // Wait for walking time: 10 ticks + 1 tick per animal
-                int travelTicks = 10 + count;
+                // Walk to field: 10 ticks + number of remaining animals
+                int travelTicks = 10 + totalRemainingAnimals;
                 waitForTicks(travelTicks);
+                
+                // Update remaining animals count after moving to this field
+                totalRemainingAnimals -= count;
                 
                 // Stocking field
                 worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), true);
