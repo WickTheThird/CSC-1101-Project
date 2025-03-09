@@ -1,6 +1,7 @@
-
 class Main {
     public static void main(String[] args) {
+        WorldState.getInstance();
+        
         Farm farm = new Farm();
         farm.addField();
 
@@ -17,7 +18,7 @@ class Main {
             farmer.start();
         }
 
-        int numberOfBuyers = 1;
+        int numberOfBuyers = 3;
         for (int i = 0; i < numberOfBuyers; i++) {
             Buyer buyer = new Buyer(farm, "Buyer " + (i + 1), tickManager);
             buyer.start();

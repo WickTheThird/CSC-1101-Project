@@ -4,7 +4,7 @@ import java.util.List;
 class Farm {
     private List<String> enclosure = new ArrayList<>();
     private List<Field> fields = new ArrayList<>();
-
+    private final WorldState worldState = WorldState.getInstance();
 
     public void addField() {
         fields.add(new Field("pigField"));
@@ -12,10 +12,16 @@ class Farm {
         fields.add(new Field("sheepField"));
         fields.add(new Field("llamaField"));
         fields.add(new Field("chickenField"));
+        
+        // Initialize field states in WorldState
+        for (Field field : fields) {
+            worldState.initializeField(field.getName(), field.getCurrentCount());
+        }
     }
 
     public synchronized void addToEnclosure(List<String> animals) {
         enclosure.addAll(animals);
+        worldState.addAnimalsToEnclosure(animals);
         notifyAll();
     }
 
@@ -32,6 +38,7 @@ class Farm {
         for (int i = 0; i < maxAnimals && !enclosure.isEmpty(); i++) {
             taken.add(enclosure.remove(0));
         }
+        worldState.removeAnimalsFromEnclosure(taken);
         return taken;
     }
 

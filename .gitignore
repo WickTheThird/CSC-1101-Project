@@ -36,3 +36,6 @@
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# File for tracking the WorldState
+farm_simulation_log.txt

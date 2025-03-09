@@ -1,4 +1,3 @@
-
 class Field {
     private final String name;
     private int capacity = 50;
@@ -6,6 +5,7 @@ class Field {
 
     public Field(String name) {
         this.name = name;
+        this.currentCount = 5;
     }
 
     public synchronized String getName() {

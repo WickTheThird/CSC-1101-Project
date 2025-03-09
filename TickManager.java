@@ -1,8 +1,8 @@
-
 class TickManager extends Thread {
     private final int tickSize;
     private int currentTick = 0;
     private boolean running = true;
+    private final WorldState worldState = WorldState.getInstance();
 
     public TickManager(int tickSize) {
         this.tickSize = tickSize;
@@ -24,6 +24,7 @@ class TickManager extends Thread {
     public synchronized void incrementTick() {
         currentTick++;
         System.out.println("Tick: " + currentTick);
+        worldState.updateTick(currentTick);
         notifyAll();
     }
 
