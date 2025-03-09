@@ -7,11 +7,11 @@ class Farm {
 
 
     public void addField() {
-        fields.add(new Field("pigs"));
-        fields.add(new Field("cows"));
-        fields.add(new Field("sheep"));
-        fields.add(new Field("llamas"));
-        fields.add(new Field("chickens"));
+        fields.add(new Field("pigField"));
+        fields.add(new Field("cowField"));
+        fields.add(new Field("sheepField"));
+        fields.add(new Field("llamaField"));
+        fields.add(new Field("chickenField"));
     }
 
     public synchronized void addToEnclosure(List<String> animals) {

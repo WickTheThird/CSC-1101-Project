@@ -7,6 +7,10 @@ class Buyer extends Thread {
     private final Random random = new Random();
     private final TickManager tickManager;
     private int lastCheckedTick = 0;
+    
+    // For tracking the waiting state and time
+    private Field waitingForField = null;
+    private long waitStartTick = 0;
 
     public Buyer(Farm farm, String buyerName, TickManager tickManager) {
         this.farm = farm;
@@ -26,21 +30,39 @@ class Buyer extends Thread {
                     lastCheckedTick = currentTick;
                 }
                 
-                if (random.nextInt(10) == 0) {
+                if (waitingForField != null) {
+                    // If we're already waiting for a field, check if it has animals now
+                    synchronized (waitingForField) {
+                        if (waitingForField.getCurrentCount() > 0) {
+                            // Animal is available, buy it and stop waiting
+                            waitingForField.removeAnimals(1);
+                            long waitedTicks = tickManager.getCurrentTick() - waitStartTick;
+                            System.out.println(tickManager.getCurrentTick() + " " + buyerName + 
+                                              " bought 1 animal from " + waitingForField.getName() +
+                                              " waited_ticks=" + waitedTicks);
+                            waitingForField = null; // No longer waiting
+                        }
+                    }
+                } else if (random.nextInt(10) == 0) {
+                    // Not waiting and random chance to attempt purchase
                     Field field = getRandomField();
                     if (field != null) {
                         synchronized (field) {
                             if (field.getCurrentCount() > 0) {
                                 field.removeAnimals(1);
                                 System.out.println(tickManager.getCurrentTick() + " " + buyerName + 
-                                                   " bought 1 animal from " + field.getName());
+                                                  " bought 1 animal from " + field.getName());
                             } else {
+                                // Start waiting for this field to have animals
+                                waitingForField = field;
+                                waitStartTick = tickManager.getCurrentTick();
                                 System.out.println(tickManager.getCurrentTick() + " " + buyerName + 
-                                                   " is waiting for animals in " + field.getName());
+                                                  " is waiting for animals in " + field.getName());
                             }
                         }
                     }
                 }
+                
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
