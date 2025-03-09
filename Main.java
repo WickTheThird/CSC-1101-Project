@@ -11,15 +11,15 @@ class Main {
         DeliveryManager deliveryManager = new DeliveryManager(farm);
         deliveryManager.start();
 
-        int numberOfFarmers = 3;
+        int numberOfFarmers = 1;
         for (int i = 0; i < numberOfFarmers; i++) {
             Farmer farmer = new Farmer(farm, "Farmer " + (i + 1));
             farmer.start();
         }
 
-        int numberOfBuyers = 5;
+        int numberOfBuyers = 1;
         for (int i = 0; i < numberOfBuyers; i++) {
-            Buyer buyer = new Buyer(farm, "Buyer " + (i + 1));
+            Buyer buyer = new Buyer(farm, "Buyer " + (i + 1), tickManager);
             buyer.start();
         }
 
