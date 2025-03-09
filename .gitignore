@@ -1,0 +1,38 @@
+# Compiled class files
+*.class
+
+# Build directories
+/out/
+/bin/
+/build/
+/target/
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE-specific files (IntelliJ IDEA)
+.idea/
+*.iws
+*.ipr
+*.iml
+.idea/libraries/
+
+# Eclipse specific files
+.classpath
+.project
+.settings/
+
+# VS Code specific files
+.vscode/
+
+# Log files
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
