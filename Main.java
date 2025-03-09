@@ -14,7 +14,7 @@ class Main {
 
         int numberOfFarmers = 1;
         for (int i = 0; i < numberOfFarmers; i++) {
-            Farmer farmer = new Farmer(farm, "Farmer " + (i + 1));
+            Farmer farmer = new Farmer(farm, "Farmer " + (i + 1), tickManager);
             farmer.start();
         }
 
