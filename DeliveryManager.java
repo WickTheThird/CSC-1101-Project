@@ -43,7 +43,7 @@ class DeliveryManager extends Thread{
 
     private List<String> generateDelivery() {
         List<String> animals = new ArrayList<>();
-        int totalAnimals = 10;
+        int totalAnimals = Config.DELIVERY_SIZE;
         String[] animalTypes = {"pigs", "cows", "sheep", "llamas", "chickens"};
 
         for (int i = 0; i < totalAnimals; i++) {
