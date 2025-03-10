@@ -54,5 +54,8 @@ class Main {
         }
 
         tickManager.stopTicks();
+        if (showGUI && worldState.getGUI() != null) {
+            worldState.getGUI().showSimulationEnded();
+        }
     }
 }

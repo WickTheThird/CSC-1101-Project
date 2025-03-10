@@ -19,6 +19,7 @@ public class FarmGUI extends JFrame {
     private final JPanel buyersPanel;
     private final JPanel enclosurePanel;
     private final JLabel tickLabel;
+    private boolean simulationEnded = false;
     
     public FarmGUI() {
         setTitle("Farm Simulation");
@@ -79,7 +80,9 @@ public class FarmGUI extends JFrame {
             updateFarmers();
             updateBuyers();
             updateEnclosure();
-            updateTick();
+            if (!simulationEnded) {
+                updateTick();
+            }
         });
     }
     
@@ -193,5 +196,14 @@ public class FarmGUI extends JFrame {
     
     private void updateTick() {
         tickLabel.setText("Tick: " + worldState.getCurrentTick());
+    }
+    
+    public void showSimulationEnded() {
+        SwingUtilities.invokeLater(() -> {
+            simulationEnded = true;
+            tickLabel.setText("SIMULATION ENDED");
+            tickLabel.setFont(new Font("Arial", Font.BOLD, 36));
+            tickLabel.setForeground(Color.RED);
+        });
     }
 }

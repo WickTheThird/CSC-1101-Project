@@ -147,6 +147,10 @@ public class WorldState {
         return currentTick;
     }
     
+    public FarmGUI getGUI() {
+        return gui;
+    }
+    
     // Log the current state to file
     private void logState() {
         StringBuilder sb = new StringBuilder();
