@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,9 @@ public class WorldState {
     
     // Current tick
     private volatile int currentTick = 0;
+    
+    // GUI Reference
+    private FarmGUI gui;
     
     // Singleton instance
     private static WorldState instance;
@@ -57,10 +61,20 @@ public class WorldState {
         return instance;
     }
     
+    // Set the GUI reference
+    public void setGUI(FarmGUI gui) {
+        this.gui = gui;
+    }
+    
     // Update the current tick and log the state
     public synchronized void updateTick(int tick) {
         this.currentTick = tick;
         logState();
+        
+        // Update GUI if available
+        if (gui != null) {
+            gui.update();
+        }
     }
     
     // Initialize field states
@@ -110,6 +124,27 @@ public class WorldState {
                 }
             }
         }
+    }
+    
+    // Getters for GUI to access data
+    public Map<String, String> getFarmerActivities() {
+        return Collections.unmodifiableMap(farmerActivities);
+    }
+    
+    public Map<String, String> getBuyerActivities() {
+        return Collections.unmodifiableMap(buyerActivities);
+    }
+    
+    public Map<String, FieldState> getFieldStates() {
+        return Collections.unmodifiableMap(fieldStates);
+    }
+    
+    public Map<String, Integer> getEnclosureState() {
+        return Collections.unmodifiableMap(enclosureState);
+    }
+    
+    public int getCurrentTick() {
+        return currentTick;
     }
     
     // Log the current state to file
@@ -162,6 +197,14 @@ public class WorldState {
         public FieldState(int animalCount, boolean isBeingStocked) {
             this.animalCount = animalCount;
             this.isBeingStocked = isBeingStocked;
+        }
+        
+        public int getAnimalCount() {
+            return animalCount;
+        }
+        
+        public boolean isBeingStocked() {
+            return isBeingStocked;
         }
         
         @Override

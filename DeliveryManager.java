@@ -16,7 +16,7 @@ class DeliveryManager extends Thread{
             try {
                 Thread.sleep(100);
 
-                if (random.nextInt(100) == 0) {
+                if (random.nextInt(10) == 0) {
                     List<String> animals = generateDelivery();
                     farm.addToEnclosure(animals);
                     System.out.println("Delivery manager added " + animals.size() + " animals to the enclosure.");

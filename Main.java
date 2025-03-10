@@ -1,18 +1,41 @@
 class Main {
     public static void main(String[] args) {
-        WorldState.getInstance();
+        WorldState worldState = WorldState.getInstance();
         
         Farm farm = new Farm();
         farm.addField();
 
         int tickSize = 100;
         TickManager tickManager = new TickManager(tickSize);
+        
+        // Check if GUI should be displayed
+        boolean showGUI = false;
+        for (String arg : args) {
+            if (arg.equalsIgnoreCase("-gui") || arg.equalsIgnoreCase("--gui")) {
+                showGUI = true;
+                System.out.println("GUI will be displayed");
+                break;
+            }
+        }
+        
+        // Only create and set up GUI if requested
+        if (showGUI) {
+            try {
+                FarmGUI gui = new FarmGUI();
+                worldState.setGUI(gui);
+                System.out.println("GUI initialized successfully");
+            } catch (Exception e) {
+                System.err.println("Failed to initialize GUI: " + e.getMessage());
+                System.out.println("Continuing in headless mode");
+            }
+        }
+        
         tickManager.start();
 
         DeliveryManager deliveryManager = new DeliveryManager(farm);
         deliveryManager.start();
 
-        int numberOfFarmers = 1;
+        int numberOfFarmers = 5;
         for (int i = 0; i < numberOfFarmers; i++) {
             Farmer farmer = new Farmer(farm, "Farmer " + (i + 1), tickManager);
             farmer.start();
