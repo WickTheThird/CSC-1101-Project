@@ -5,26 +5,39 @@ import java.util.Random;
 class DeliveryManager extends Thread{
     private final Farm farm;
     private final Random random = new Random();
+    private final TickManager tickManager;
+    private int lastCheckedTick = 0;
 
-    public DeliveryManager(Farm farm) {
+    public DeliveryManager(Farm farm, TickManager tickManager) {
         this.farm = farm;
+        this.tickManager = tickManager;
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                Thread.sleep(100);
+                waitForNextTick();
 
                 if (random.nextInt(10) == 0) {
                     List<String> animals = generateDelivery();
                     farm.addToEnclosure(animals);
-                    System.out.println("Delivery manager added " + animals.size() + " animals to the enclosure.");
+                    System.out.println(tickManager.getCurrentTick() + "Delivery manager added " + animals.size() + " animals to the enclosure.");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }
+        }
+    }
+
+    private void waitForNextTick() throws InterruptedException {
+        synchronized (tickManager) {
+            int currentTick = tickManager.getCurrentTick();
+            if (lastCheckedTick == currentTick) {
+                tickManager.wait();
+            }
+            lastCheckedTick = currentTick;
         }
     }
 

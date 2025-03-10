@@ -32,7 +32,7 @@ class Main {
         
         tickManager.start();
 
-        DeliveryManager deliveryManager = new DeliveryManager(farm);
+        DeliveryManager deliveryManager = new DeliveryManager(farm, tickManager);
         deliveryManager.start();
 
         int numberOfFarmers = 5;
