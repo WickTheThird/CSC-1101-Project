@@ -19,7 +19,7 @@ class DeliveryManager extends Thread{
             try {
                 waitForNextTick();
 
-                if (random.nextInt(10) == 0) {
+                if (random.nextInt(Config.DELIVERY_FREQUENCY) == 0) {
                     List<String> animals = generateDelivery();
                     farm.addToEnclosure(animals);
                     System.out.println(tickManager.getCurrentTick() + "Delivery manager added " + animals.size() + " animals to the enclosure.");

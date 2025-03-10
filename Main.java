@@ -5,7 +5,7 @@ class Main {
         Farm farm = new Farm();
         farm.addField();
 
-        int tickSize = 100;
+        int tickSize = Config.TICK_SIZE;
         TickManager tickManager = new TickManager(tickSize);
         
         // Check if GUI should be displayed
@@ -35,20 +35,20 @@ class Main {
         DeliveryManager deliveryManager = new DeliveryManager(farm, tickManager);
         deliveryManager.start();
 
-        int numberOfFarmers = 5;
+        int numberOfFarmers = Config.NUMBER_OF_FARMERS;
         for (int i = 0; i < numberOfFarmers; i++) {
             Farmer farmer = new Farmer(farm, "Farmer " + (i + 1), tickManager);
             farmer.start();
         }
 
-        int numberOfBuyers = 3;
+        int numberOfBuyers = Config.NUMBER_OF_BUYERS;
         for (int i = 0; i < numberOfBuyers; i++) {
             Buyer buyer = new Buyer(farm, "Buyer " + (i + 1), tickManager);
             buyer.start();
         }
 
         try {
-            Thread.sleep(10000 * tickSize);
+            Thread.sleep(Config.SIMULATION_DURATION * tickSize);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
