@@ -147,24 +147,45 @@ public class FarmGUI extends JFrame {
         buyersPanel.revalidate();
         buyersPanel.repaint();
     }
-    
+
     private void updateEnclosure() {
         enclosurePanel.removeAll();
-        StringBuilder sb = new StringBuilder();
+        enclosurePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        enclosurePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        enclosurePanel.setBackground(new Color(240, 240, 250));
+        
         boolean hasAnimals = false;
         
         for (Map.Entry<String, Integer> entry : worldState.getEnclosureState().entrySet()) {
             if (entry.getValue() > 0) {
-                if (hasAnimals) sb.append(" • ");
-                sb.append(entry.getKey()).append("=").append(entry.getValue());
+                JPanel animalPanel = new JPanel();
+                animalPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new Color(180, 180, 220), 1, true),
+                    javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
+                animalPanel.setBackground(new Color(230, 240, 255));
+                
+                JLabel animalLabel = new JLabel(entry.getKey() + ": " + entry.getValue());
+                animalLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                animalPanel.add(animalLabel);
+                enclosurePanel.add(animalPanel);
                 hasAnimals = true;
             }
         }
         
-        String enclosureText = hasAnimals ? sb.toString() : "Empty";
-        JLabel enclosureLabel = new JLabel(enclosureText);
-        enclosureLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        enclosurePanel.add(enclosureLabel);
+        if (!hasAnimals) {
+            JPanel emptyPanel = new JPanel();
+            emptyPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(220, 180, 180), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12)
+            ));
+            emptyPanel.setBackground(new Color(255, 230, 230));
+            
+            JLabel emptyLabel = new JLabel("Empty");
+            emptyLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            emptyPanel.add(emptyLabel);
+            enclosurePanel.add(emptyPanel);
+        }
         
         enclosurePanel.revalidate();
         enclosurePanel.repaint();
