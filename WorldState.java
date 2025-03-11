@@ -7,9 +7,12 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.swing.SwingUtilities;
 
 public class WorldState {
     private static final String LOG_FILE_PATH = "farm_simulation_log.txt";
@@ -32,6 +35,8 @@ public class WorldState {
     
     // Singleton instance
     private static WorldState instance;
+
+    private int enclosureCount = 0;
     
     // Constructor
     private WorldState() {
@@ -107,24 +112,54 @@ public class WorldState {
     
     // Add animals to enclosure
     public void addAnimalsToEnclosure(List<String> animals) {
-        synchronized(enclosureState) {
+        if (animals == null || animals.isEmpty()) return;
+        
+        synchronized (enclosureState) {
+            // Count animals by type
             for (String animal : animals) {
-                enclosureState.put(animal, enclosureState.getOrDefault(animal, 0) + 1);
+                int current = enclosureState.getOrDefault(animal, 0);
+                enclosureState.put(animal, current + 1);
             }
         }
+        
+        // Force immediate GUI update
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
+
+    public void updateEnclosureCount(int count) {
+        this.enclosureCount = count;
+        
+        // Force immediate GUI update
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
+
+    public int getEnclosureCount() {
+        return enclosureCount;
     }
     
     // Remove animals from enclosure
     public void removeAnimalsFromEnclosure(List<String> animals) {
+        if (animals == null || animals.isEmpty()) return;
+        
         synchronized(enclosureState) {
             for (String animal : animals) {
-                int currentCount = enclosureState.getOrDefault(animal, 0);
-                if (currentCount > 0) {
-                    enclosureState.put(animal, currentCount - 1);
+                int current = enclosureState.getOrDefault(animal, 0);
+                if (current > 0) {
+                    enclosureState.put(animal, current - 1);
                 }
             }
         }
-    }
+        
+        System.out.println("DEBUG - Enclosure state after removing: " + enclosureState);
+        
+        if (gui != null) {
+            gui.update();
+        }
+}
     
     // Getters for GUI to access data
     public Map<String, String> getFarmerActivities() {
@@ -140,7 +175,10 @@ public class WorldState {
     }
     
     public Map<String, Integer> getEnclosureState() {
-        return Collections.unmodifiableMap(enclosureState);
+        // Create a defensive copy to prevent concurrent modification
+        synchronized(enclosureState) {
+            return new HashMap<>(enclosureState);
+        }
     }
     
     public int getCurrentTick() {

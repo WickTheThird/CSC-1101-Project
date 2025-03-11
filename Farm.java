@@ -20,8 +20,29 @@ class Farm {
     }
 
     public synchronized void addToEnclosure(List<String> animals) {
+        if (animals == null || animals.isEmpty()) return;
+        
+        // Debug output before adding
+        System.out.println("DEBUG - Before adding to enclosure: " + enclosure.size() + " animals");
+        
+        // Add all animals to the enclosure
         enclosure.addAll(animals);
+        
+        // Update WorldState for GUI
         worldState.addAnimalsToEnclosure(animals);
+        worldState.updateEnclosureCount(enclosure.size());
+        
+        System.out.println("DEBUG - After adding to enclosure: " + enclosure.size() + " animals");
+        System.out.println("DEBUG - Enclosure state: " + worldState.getEnclosureState());
+        
+        // Add a small delay to ensure GUI updates before farmers take animals
+        try {
+            Thread.sleep(50); // Short delay to ensure GUI gets updated
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Notify waiting farmers
         notifyAll();
     }
 

@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 class DeliveryManager extends Thread{
@@ -21,9 +24,19 @@ class DeliveryManager extends Thread{
 
                 if (random.nextInt(Config.DELIVERY_FREQUENCY) == 0) {
                     List<String> animals = generateDelivery();
+                    
+                    // First update the GUI to show delivery
+                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
+                                    " delivery_arrived : " + formatDelivery(animals));
+                    
                     farm.addToEnclosure(animals);
-                    System.out.println(tickManager.getCurrentTick() + "Delivery manager added " + animals.size() + " animals to the enclosure.");
-                }
+                    
+                    try {
+                        Thread.sleep(100); // Short delay to ensure GUI updates
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+            }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -53,4 +66,30 @@ class DeliveryManager extends Thread{
 
         return animals;
     }
+
+    private String formatDelivery(List<String> animals) {
+    Map<String, Integer> counts = new HashMap<>();
+    for (String animal : animals) {
+        counts.put(animal, counts.getOrDefault(animal, 0) + 1);
+    }
+    
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    
+    List<String> sortedTypes = new ArrayList<>(counts.keySet());
+    Collections.sort(sortedTypes);
+    
+    for (String type : sortedTypes) {
+        int count = counts.get(type);
+        if (count > 0) {
+            if (!first) {
+                sb.append(" ");
+            }
+            sb.append(type).append("=").append(count);
+            first = false;
+        }
+    }
+    
+    return sb.toString();
+}
 }

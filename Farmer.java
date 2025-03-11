@@ -17,24 +17,32 @@ class Farmer extends Thread {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
-            try {
-                worldState.updateFarmerActivity(farmerName, "Waiting at enclosure");
-                var animals = farm.takeFromEnclosure(10); // -> MAKE THIS MORE FLEXIBLE
-                
-                if (!animals.isEmpty()) {
-                    System.out.println(farmerName + " took " + animals.size() + " animals from the enclosure.");
-                    worldState.updateFarmerActivity(farmerName, "Collected " + animals.size() + " animals from enclosure");
-                    stockAnimals(animals);
-                }
-                
-                // Wait for the next tick
+        try {
+            while (!Thread.interrupted()) {
+                // Wait for a tick
                 waitForNextTick();
                 
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+                // Update status
+                worldState.updateFarmerActivity(farmerName, "Waiting at enclosure");
+                
+                // Add delay to let GUI display animals in enclosure
+                try {
+                    Thread.sleep(300); // Wait 300ms before taking animals
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                
+                // Take animals from enclosure
+                List<String> animals = farm.takeFromEnclosure(10);
+                
+                if (!animals.isEmpty()) {
+                    // Process the animals...
+                    stockAnimals(animals);
+                }
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
