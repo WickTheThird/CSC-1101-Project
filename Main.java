@@ -21,7 +21,7 @@ class Main {
         // Only create and set up GUI if requested
         if (showGUI) {
             try {
-                FarmGUI gui = new FarmGUI();
+                FarmGUI gui = new FarmGUI(tickManager, farm);
                 worldState.setGUI(gui);
                 System.out.println("GUI initialized successfully");
             } catch (Exception e) {

@@ -4,8 +4,11 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,8 +23,17 @@ public class FarmGUI extends JFrame {
     private final JPanel enclosurePanel;
     private final JLabel tickLabel;
     private boolean simulationEnded = false;
+    private TickManager tickManager;
+    private JButton pauseButton;
+    private JButton playButton;
+    private Farm farm;
+    private int farmerCounter;
     
-    public FarmGUI() {
+    public FarmGUI(TickManager tickManager, Farm farm) {
+        this.tickManager = tickManager;
+        this.farm = farm;
+        this.farmerCounter = Config.NUMBER_OF_FARMERS;
+        
         setTitle("Farm Simulation");
         setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,6 +57,46 @@ public class FarmGUI extends JFrame {
         JLabel enclosureTitle = new JLabel("Enclosure", JLabel.CENTER);
         enclosureTitle.setFont(new Font("Arial", Font.BOLD, 14));
         
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pauseButton = new JButton("Pause");
+        playButton = new JButton("Play");
+
+        JButton addFarmerButton = new JButton("Add Farmer");
+        playButton.setEnabled(false);
+        
+        pauseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!simulationEnded && tickManager != null) {
+                    tickManager.pauseTicks();
+                    pauseButton.setEnabled(false);
+                    playButton.setEnabled(true);
+                }
+            }
+        });
+        
+        playButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!simulationEnded && tickManager != null) {
+                    tickManager.resumeTicks();
+                    playButton.setEnabled(false);
+                    pauseButton.setEnabled(true);
+                }
+            }
+        });
+        
+        addFarmerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addNewFarmer();
+            }
+        });
+        
+        controlPanel.add(pauseButton);
+        controlPanel.add(playButton);
+        controlPanel.add(addFarmerButton);
+        
         // Add panels to the frame
         JPanel westPanel = new JPanel(new BorderLayout());
         westPanel.add(fieldsTitle, BorderLayout.NORTH);
@@ -61,17 +113,32 @@ public class FarmGUI extends JFrame {
         southPanel.add(new JScrollPane(buyersPanel), BorderLayout.CENTER);
         southPanel.setPreferredSize(new Dimension(800, 150));
         
+        JPanel topContainer = new JPanel(new BorderLayout());
+        topContainer.add(controlPanel, BorderLayout.NORTH);
+        
         JPanel northPanel = new JPanel(new BorderLayout());
         northPanel.add(tickLabel, BorderLayout.NORTH);
         northPanel.add(enclosureTitle, BorderLayout.CENTER);
         northPanel.add(enclosurePanel, BorderLayout.SOUTH);
         
-        add(northPanel, BorderLayout.NORTH);
+        topContainer.add(northPanel, BorderLayout.CENTER);
+        add(topContainer, BorderLayout.NORTH);
         add(westPanel, BorderLayout.WEST);
         add(eastPanel, BorderLayout.EAST);
         add(southPanel, BorderLayout.SOUTH);
         
         setVisible(true);
+    }
+    
+    // Method to dunamically add a new farmer to the simulation
+    private void addNewFarmer() {
+        if (!simulationEnded && farm != null) {
+            farmerCounter++;
+            String farmerName = "Farmer " + farmerCounter;
+            Farmer newFarmer = new Farmer(farm, farmerName, tickManager);
+            newFarmer.start();
+            System.out.println("Added new " + farmerName + " to the simulation");
+        }
     }
     
     public void update() {
@@ -204,6 +271,8 @@ public class FarmGUI extends JFrame {
             tickLabel.setText("SIMULATION ENDED");
             tickLabel.setFont(new Font("Arial", Font.BOLD, 36));
             tickLabel.setForeground(Color.RED);
+            pauseButton.setEnabled(false);
+            playButton.setEnabled(false);
         });
     }
 }

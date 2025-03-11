@@ -47,7 +47,7 @@ class DeliveryManager extends Thread{
         String[] animalTypes = {"pigs", "cows", "sheep", "llamas", "chickens"};
 
         for (int i = 0; i < totalAnimals; i++) {
-            String animal = animalTypes[random.nextInt(animalTypes.length)];
+            String animal = animalTypes[2];
             animals.add(animal);
         }
 

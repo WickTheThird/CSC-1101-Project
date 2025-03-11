@@ -2,6 +2,7 @@ class Field {
     private final String name;
     private int capacity = 50;
     private int currentCount = 0;
+    private boolean beingStocked = false;
 
     public Field(String name) {
         this.name = name;
@@ -34,5 +35,17 @@ class Field {
             return true;
         }
         return false;
+    }
+    
+    public synchronized void startStocking() throws InterruptedException {
+        while (beingStocked) {
+            wait();
+        }
+        beingStocked = true;
+    }
+    
+    public synchronized void finishStocking() {
+        beingStocked = false;
+        notifyAll();
     }
 }

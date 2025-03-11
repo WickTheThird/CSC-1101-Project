@@ -52,43 +52,39 @@ class Farmer extends Thread {
         Map<String, Integer> animalCounts = countAnimalsByType(animals);
         int totalRemainingAnimals = animals.size();
         
-        for (String animalType : animalCounts.keySet()) {
+        for (Map.Entry<String, Integer> entry : animalCounts.entrySet()) {
+            String animalType = entry.getKey();
+            int count = entry.getValue();
             Field chosenField = findSuitableField(animalType);
+            
             if (chosenField != null) {
-                int count = animalCounts.get(animalType);
-                
-                // Update WorldState - walking to field
-                worldState.updateFarmerActivity(farmerName, "Walking to " + chosenField.getName() + " with " + count + " " + animalType);
-                System.out.println(farmerName + " walking to " + chosenField.getName() + " with " + count + " " + animalType);
-                
-                // Walk to field: 10 ticks + number of remaining animals
-                int travelTicks = 10 + totalRemainingAnimals;
-                waitForTicks(travelTicks);
-                
-                // Update remaining animals count after moving to this field
-                totalRemainingAnimals -= count;
-                
-                // Stocking field
-                worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), true);
-                worldState.updateFarmerActivity(farmerName, "Stocking " + count + " " + animalType + " into " + chosenField.getName());
-                System.out.println(farmerName + " is stocking " + count + " " + animalType + " into " + chosenField.getName());
-                
-                // Stock animals one by one, taking 1 tick per animal
-                for (int i = 0; i < count; i++) {
-                    chosenField.addAnimals(1);
+                try {
+                    worldState.updateFarmerActivity(farmerName, "Waiting to stock " + chosenField.getName());
+                    chosenField.startStocking();
+                    
+                    // Travel to field
+                    worldState.updateFarmerActivity(farmerName, "Walking to " + chosenField.getName());
+                    waitForTicks(10 + totalRemainingAnimals);
+                    totalRemainingAnimals -= count;
+                    
+                    // Stock the animals
                     worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), true);
-                    waitForTicks(1);
+                    worldState.updateFarmerActivity(farmerName, "Stocking " + count + " " + animalType);
+                    
+                    for (int i = 0; i < count; i++) {
+                        chosenField.addAnimals(1);
+                        worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), true);
+                        waitForTicks(1);
+                    }
+                    
+                    worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), false);
+                } finally {
+                    chosenField.finishStocking();
                 }
-                
-                // Update WorldState - field stocked
-                worldState.updateFieldState(chosenField.getName(), chosenField.getCurrentCount(), false);
-                System.out.println(farmerName + " finished stocking " + chosenField.getName());
             }
         }
         
-        // Return to enclosure - takes 10 ticks
         worldState.updateFarmerActivity(farmerName, "Returning to enclosure");
-        System.out.println(farmerName + " returning to enclosure");
         waitForTicks(10);
     }
 
