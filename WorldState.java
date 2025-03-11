@@ -246,7 +246,7 @@ public class WorldState {
         public int getAnimalCount() {
             return animalCount;
         }
-        
+
         public boolean isBeingStocked() {
             return isBeingStocked;
         }
@@ -294,6 +294,21 @@ public class WorldState {
             enclosureState.putAll(newState);
         }
 
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
+
+    public void updateFieldCount(String fieldName, int count) {
+        FieldState currentState = fieldStates.get(fieldName);
+        if (currentState != null) {
+            boolean isStocking = currentState.isBeingStocked();
+            fieldStates.put(fieldName, new FieldState(count, isStocking));
+        } else {
+            fieldStates.put(fieldName, new FieldState(count, false));
+        }
+
+        // Ensure GUI updates
         if (gui != null) {
             SwingUtilities.invokeLater(() -> gui.update());
         }

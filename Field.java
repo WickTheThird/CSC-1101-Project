@@ -55,4 +55,14 @@ class Field {
         worldState.updateFieldState(name, currentCount, false);
         notifyAll();
     }
+
+    public synchronized boolean tryRemoveAnimal() {
+    if (currentCount > 0) {
+        currentCount--;
+        worldState.updateFieldCount(name, currentCount);
+        notifyAll();
+        return true;
+    }
+    return false;
+}
 }

@@ -22,88 +22,75 @@ class Buyer extends Thread {
     public void run() {
         try {
             while (!Thread.interrupted()) {
-                // Wait for next tick
                 waitForNextTick();
-                
-                // Get a field - either continue with current field or pick a new one
-                if (currentField == null || waitedTicks >= MAX_WAIT_TIME) {
-                    // If we've waited too long or don't have a field, pick a new one
-                    if (waitedTicks >= MAX_WAIT_TIME) {
-                        System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                         " buyer=" + buyerName + " giving_up on " + currentField.getName() + 
-                                         " after " + waitedTicks + " ticks");
-                        
-                        // If we were waiting for the old field, remove ourselves
-                        if (currentField != null) {
-                            worldState.removeWaitingBuyer(currentField.getName());
-                        }
+
+                if (waitedTicks >= MAX_WAIT_TIME) {
+                    String previousField = (currentField != null) ? currentField.getName() : "none";
+                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
+                                    " buyer=" + buyerName + " gave_up_waiting for " + previousField + 
+                                    " after " + waitedTicks + " ticks");
+
+                    if (currentField != null) {
+                        worldState.removeWaitingBuyer(currentField.getName());
                     }
-                    
-                    // Reset waiting counter and get new field
-                    currentField = getRandomField();
+
                     waitedTicks = 0;
-                    if (currentField == null) continue;
+                    currentField = null;
                 }
-                
-                // Try to buy from the current field
-                synchronized (currentField) {
-                    // Check if field is being stocked
-                    if (currentField.isBeingStocked()) {
+
+                Field field;
+                if (currentField == null) {
+                    field = getRandomField();
+                    if (field == null) continue;
+                    currentField = field;
+                } else {
+                    field = currentField;
+                }
+
+                synchronized (field) {
+                    if (field.isBeingStocked()) {
                         waitedTicks++;
-                        worldState.updateBuyerActivity(buyerName, "Waiting for " + currentField.getName() + " (stocking)");
-                        worldState.addWaitingBuyer(currentField.getName());
+                        worldState.updateBuyerActivity(buyerName, "Waiting - " + field.getName() + 
+                                                    " is being stocked (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
+                        worldState.addWaitingBuyer(field.getName());
                         
                         System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                        " buyer=" + buyerName + " waiting_for_field=" + currentField.getName() + 
+                                        " buyer=" + buyerName + " waiting_for_field=" + field.getName() + 
                                         " reason=being_stocked");
                         continue;
                     }
-                    
-                    // Check if there are animals to buy
-                    if (currentField.getCurrentCount() > 0) {
-                        // Buy an animal
-                        if (currentField.removeAnimals(1)) {
-                            int waited = waitedTicks;
-                            waitedTicks = 0;
-                            worldState.removeWaitingBuyer(currentField.getName());
-                            
-                            // Purchase successful - reset field and timeout
-                            String animalType = currentField.getName();
-                            worldState.updateBuyerActivity(buyerName, "Bought a " + animalType);
-                            
-                            // Print appropriate message
-                            if (waited > 0) {
-                                System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                                " buyer=" + buyerName + " bought 1 animal from " + currentField.getName() + 
-                                                " waited_ticks=" + waited);
-                            } else {
-                                System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                                " buyer=" + buyerName + " bought 1 animal from " + currentField.getName());
-                            }
-                            
-                            // Get a new field next time
-                            currentField = null;
+
+                    if (field.tryRemoveAnimal()) {
+                        int waited = waitedTicks;
+                        waitedTicks = 0;
+                        worldState.removeWaitingBuyer(field.getName());
+                        currentField = null;
+                        
+                        String animalType = field.getName();
+                        worldState.updateBuyerActivity(buyerName, "Bought a " + animalType + " animal");
+                        
+                        if (waited > 0) {
+                            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
+                                            " buyer=" + buyerName + " bought 1 animal from " + field.getName() + 
+                                            " waited_ticks=" + waited);
+                        } else {
+                            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
+                                            " buyer=" + buyerName + " bought 1 animal from " + field.getName());
                         }
                     } else {
-                        // Field is empty, increment wait counter
                         waitedTicks++;
-                        String animalType = currentField.getName();
+                        String animalType = field.getName();
+                        worldState.updateBuyerActivity(buyerName, "Waiting for " + animalType + 
+                                                    " (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
+                        worldState.addWaitingBuyer(field.getName());
                         
-                        // Update status to show animal type
-                        worldState.updateBuyerActivity(buyerName, "Waiting for " + animalType + " (" + waitedTicks + " ticks)");
-                        worldState.addWaitingBuyer(currentField.getName());
-                        
-                        // Only log every 10 ticks to reduce spam
-                        if (waitedTicks == 1 || waitedTicks % 10 == 0) {
-                            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                            " buyer=" + buyerName + " waiting_for_field=" + currentField.getName() + 
-                                            " reason=empty ticks=" + waitedTicks);
-                        }
+                        System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
+                                        " buyer=" + buyerName + " waiting_for_field=" + field.getName() + 
+                                        " reason=empty");
                     }
                 }
-                
-                // Wait a few ticks before trying again
-                waitForTicks(random.nextInt(3) + 1);
+
+                waitForTicks(random.nextInt(5) + 1);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
