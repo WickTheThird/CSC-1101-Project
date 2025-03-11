@@ -43,6 +43,10 @@ class Field {
         }
         beingStocked = true;
     }
+
+    public synchronized boolean isBeingStocked() {
+        return beingStocked;
+    }
     
     public synchronized void finishStocking() {
         beingStocked = false;

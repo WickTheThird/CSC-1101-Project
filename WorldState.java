@@ -20,6 +20,8 @@ public class WorldState {
     // Maps to track activities of farmers and buyers
     private final Map<String, String> farmerActivities = new ConcurrentHashMap<>();
     private final Map<String, String> buyerActivities = new ConcurrentHashMap<>();
+    private final Map<String, Integer> waitingBuyers = new ConcurrentHashMap<>();
+
     
     // Track field states (animal counts and being stocked status)
     private final Map<String, FieldState> fieldStates = new ConcurrentHashMap<>();
@@ -253,6 +255,47 @@ public class WorldState {
         public String toString() {
             return "Animal Count: " + animalCount + 
                    ", Being Stocked: " + isBeingStocked;
+        }
+    }
+
+    public void addWaitingBuyer(String fieldName) {
+        waitingBuyers.put(fieldName, waitingBuyers.getOrDefault(fieldName, 0) + 1);
+
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
+
+    public void removeWaitingBuyer(String fieldName) {
+        int currentCount = waitingBuyers.getOrDefault(fieldName, 0);
+        if (currentCount > 0) {
+            waitingBuyers.put(fieldName, currentCount - 1);
+        }
+
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
+
+    public boolean hasWaitingBuyers(String fieldName) {
+        return waitingBuyers.getOrDefault(fieldName, 0) > 0;
+    }
+    public int getWaitingBuyersCount(String fieldName) {
+        return waitingBuyers.getOrDefault(fieldName, 0);
+    }
+
+    public Map<String, Integer> getWaitingBuyers() {
+        return Collections.unmodifiableMap(waitingBuyers);
+    }
+
+    public void setEnclosureState(Map<String, Integer> newState) {
+        synchronized(enclosureState) {
+            enclosureState.clear();
+            enclosureState.putAll(newState);
+        }
+
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
         }
     }
 }

@@ -7,7 +7,7 @@ class Main {
 
         int tickSize = Config.TICK_SIZE;
         TickManager tickManager = new TickManager(tickSize);
-        
+
         // Check if GUI should be displayed
         boolean showGUI = false;
         for (String arg : args) {
@@ -43,7 +43,7 @@ class Main {
 
         int numberOfBuyers = Config.NUMBER_OF_BUYERS;
         for (int i = 0; i < numberOfBuyers; i++) {
-            Buyer buyer = new Buyer(farm, "Buyer " + (i + 1), tickManager);
+            Buyer buyer = new Buyer("Buyer " + (i + 1), farm, tickManager);
             buyer.start();
         }
 
