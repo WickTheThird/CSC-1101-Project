@@ -182,20 +182,20 @@ public class FarmGUI extends JFrame {
             JPanel farmerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             JLabel label = new JLabel(entry.getKey() + ": " + entry.getValue());
             
-            // Color coding based on activity
+        // Color coding based on activity
             if (entry.getValue().contains("On break")) {
                 // Pink color for farmers on break
-                farmerPanel.setBackground(new Color(255, 182, 193));
+                farmerPanel.setBackground(new Color(255, 182, 193)); // Light pink
             } else if (entry.getValue().contains("Walking")) {
-                farmerPanel.setBackground(new Color(200, 220, 255));
+                farmerPanel.setBackground(new Color(200, 220, 255)); // Light blue
             } else if (entry.getValue().contains("Stocking")) {
-                farmerPanel.setBackground(new Color(255, 220, 200));
+                farmerPanel.setBackground(new Color(255, 220, 200)); // Light orange
             } else if (entry.getValue().contains("Waiting")) {
-                farmerPanel.setBackground(new Color(230, 230, 230));
+                farmerPanel.setBackground(new Color(230, 230, 230)); // Light gray
             } else if (entry.getValue().contains("Moving")) {
-                farmerPanel.setBackground(new Color(200, 235, 255));
+                farmerPanel.setBackground(new Color(200, 235, 255)); // Light cyan
             } else if (entry.getValue().contains("Returning")) {
-                farmerPanel.setBackground(new Color(220, 220, 255));
+                farmerPanel.setBackground(new Color(220, 220, 255)); // Light lavender
             }
             
             farmerPanel.add(label);

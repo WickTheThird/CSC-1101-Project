@@ -3,6 +3,7 @@ class Field {
     private int capacity = 50;
     private int currentCount = 0;
     private boolean beingStocked = false;
+    private final WorldState worldState = WorldState.getInstance();
 
     public Field(String name) {
         this.name = name;
@@ -42,6 +43,7 @@ class Field {
             wait();
         }
         beingStocked = true;
+        worldState.updateFieldState(name, currentCount, true);
     }
 
     public synchronized boolean isBeingStocked() {
@@ -50,6 +52,7 @@ class Field {
     
     public synchronized void finishStocking() {
         beingStocked = false;
+        worldState.updateFieldState(name, currentCount, false);
         notifyAll();
     }
 }
