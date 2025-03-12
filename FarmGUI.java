@@ -134,10 +134,10 @@ public class FarmGUI extends JFrame {
     private void addNewFarmer() {
         if (!simulationEnded && farm != null) {
             farmerCounter++;
-            String farmerName = "Farmer " + farmerCounter;
+            String farmerName = String.valueOf(farmerCounter);
             Farmer newFarmer = new Farmer(farm, farmerName, tickManager);
             newFarmer.start();
-            System.out.println("Added new " + farmerName + " to the simulation");
+            System.out.println("Added new farmer " + farmerName + " to the simulation");
         }
     }
     

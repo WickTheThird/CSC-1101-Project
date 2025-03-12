@@ -7,6 +7,7 @@ class Main {
 
         int tickSize = Config.TICK_SIZE;
         TickManager tickManager = new TickManager(tickSize);
+        FarmLogger.setTickManager(tickManager);
 
         // Check if GUI should be displayed
         boolean showGUI = false;
@@ -37,13 +38,13 @@ class Main {
 
         int numberOfFarmers = Config.NUMBER_OF_FARMERS;
         for (int i = 0; i < numberOfFarmers; i++) {
-            Farmer farmer = new Farmer(farm, "Farmer " + (i + 1), tickManager);
+            Farmer farmer = new Farmer(farm, String.valueOf(i + 1), tickManager);
             farmer.start();
         }
 
         int numberOfBuyers = Config.NUMBER_OF_BUYERS;
         for (int i = 0; i < numberOfBuyers; i++) {
-            Buyer buyer = new Buyer("Buyer " + (i + 1), farm, tickManager);
+            Buyer buyer = new Buyer(String.valueOf(i + 1), farm, tickManager);
             buyer.start();
         }
 

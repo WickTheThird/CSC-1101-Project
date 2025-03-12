@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-class DeliveryManager extends Thread{
+class DeliveryManager extends Thread {
     private final Farm farm;
     private final Random random = new Random();
     private final TickManager tickManager;
@@ -26,17 +26,11 @@ class DeliveryManager extends Thread{
                     List<String> animals = generateDelivery();
                     
                     // First update the GUI to show delivery
-                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                    " delivery_arrived : " + formatDelivery(animals));
+                    FarmLogger.logDelivery(formatDelivery(animals));
                     
                     farm.addToEnclosure(animals);
-                    
-                    try {
-                        Thread.sleep(100); // Short delay to ensure GUI updates
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-            }
+                }
+                
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -91,5 +85,5 @@ class DeliveryManager extends Thread{
     }
     
     return sb.toString();
-}
+    }
 }

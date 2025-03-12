@@ -33,7 +33,6 @@ class TickManager extends Thread {
 
     public synchronized void incrementTick() {
         currentTick++;
-        System.out.println("Tick: " + currentTick);
         worldState.updateTick(currentTick);
         notifyAll();
     }
@@ -49,13 +48,13 @@ class TickManager extends Thread {
     
     public synchronized void pauseTicks() {
         paused = true;
-        System.out.println("Simulation paused at tick: " + currentTick);
+        FarmLogger.logPaused(currentTick);
     }
     
     public synchronized void resumeTicks() {
         paused = false;
         notifyAll();
-        System.out.println("Simulation resumed at tick: " + currentTick);
+        FarmLogger.logResumed(currentTick);
     }
     
     public synchronized boolean isPaused() {

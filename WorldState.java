@@ -156,12 +156,10 @@ public class WorldState {
             }
         }
         
-        System.out.println("DEBUG - Enclosure state after removing: " + enclosureState);
-        
         if (gui != null) {
             gui.update();
         }
-}
+    }
     
     // Getters for GUI to access data
     public Map<String, String> getFarmerActivities() {

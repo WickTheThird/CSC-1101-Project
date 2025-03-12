@@ -26,9 +26,7 @@ class Buyer extends Thread {
 
                 if (waitedTicks >= MAX_WAIT_TIME) {
                     String previousField = (currentField != null) ? currentField.getName() : "none";
-                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                    " buyer=" + buyerName + " gave_up_waiting for " + previousField + 
-                                    " after " + waitedTicks + " ticks");
+                    FarmLogger.logBuyerGaveUp(buyerName, previousField, waitedTicks);
 
                     if (currentField != null) {
                         worldState.removeWaitingBuyer(currentField.getName());
@@ -54,9 +52,7 @@ class Buyer extends Thread {
                                                     " is being stocked (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
                         worldState.addWaitingBuyer(field.getName());
                         
-                        System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                        " buyer=" + buyerName + " waiting_for_field=" + field.getName() + 
-                                        " reason=being_stocked");
+                        FarmLogger.logBuyerWaiting(buyerName, field.getName(), "being_stocked");
                         continue;
                     }
 
@@ -69,14 +65,7 @@ class Buyer extends Thread {
                         String animalType = field.getName();
                         worldState.updateBuyerActivity(buyerName, "Bought a " + animalType + " animal");
                         
-                        if (waited > 0) {
-                            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                            " buyer=" + buyerName + " bought 1 animal from " + field.getName() + 
-                                            " waited_ticks=" + waited);
-                        } else {
-                            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                            " buyer=" + buyerName + " bought 1 animal from " + field.getName());
-                        }
+                        FarmLogger.logBuyerCollection(buyerName, field.getName(), waited);
                     } else {
                         waitedTicks++;
                         String animalType = field.getName();
@@ -84,9 +73,7 @@ class Buyer extends Thread {
                                                     " (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
                         worldState.addWaitingBuyer(field.getName());
                         
-                        System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                        " buyer=" + buyerName + " waiting_for_field=" + field.getName() + 
-                                        " reason=empty");
+                        FarmLogger.logBuyerWaiting(buyerName, field.getName(), "empty");
                     }
                 }
 

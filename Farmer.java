@@ -33,8 +33,7 @@ class Farmer extends Thread {
                     onBreak = true;
                     breakCounter = 20 + random.nextInt(20); // Break for 20-40 ticks
                     worldState.updateFarmerActivity(farmerName, "On break for " + breakCounter + " ticks");
-                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                    " farmer=" + farmerName + " taking_break duration=" + breakCounter);
+                    FarmLogger.logFarmerBreak(farmerName, breakCounter);
                     continue;
                 }
 
@@ -47,8 +46,7 @@ class Farmer extends Thread {
                     if (breakCounter <= 0) {
                         onBreak = false;
                         worldState.updateFarmerActivity(farmerName, "Returning from break");
-                        System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                        " farmer=" + farmerName + " break_ended");
+                        FarmLogger.logFarmerBreakEnded(farmerName);
                     } else {
                         continue; // Skip the rest of the loop if still on break
                     }
@@ -69,8 +67,7 @@ class Farmer extends Thread {
                 List<String> animals = farm.takeFromEnclosure(10);
                 
                 if (!animals.isEmpty()) {
-                    System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() +
-                                     " farmer=" + farmerName + " took " + animals.size() + " animals from the enclosure.");
+                    FarmLogger.logFarmerCollection(farmerName, animals.size());
                     stockAnimals(animals);
                 }
             }
@@ -141,9 +138,7 @@ class Farmer extends Thread {
             worldState.updateFarmerActivity(farmerName, "Moving to " + field.getName() + " with " + count + " animals");
             
             // Wait for movement time
-            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                            " farmer=" + farmerName + " moving_to_field=" + field.getName() + 
-                            " time=" + movementTime + " animals=" + count);
+            FarmLogger.logFarmerMoving(farmerName, field.getName(), movementTime, count);
             waitForTicks(movementTime);
             
             // Try to stock the field
@@ -153,9 +148,7 @@ class Farmer extends Thread {
                 // Update farmer activity - stocking field
                 worldState.updateFarmerActivity(farmerName, "Stocking " + field.getName() + " with " + count + " animals");
                 
-                System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                " farmer=" + farmerName + " began_stocking_field : " + field.getName() + 
-                                "=" + count);
+                FarmLogger.logFarmerBeginStocking(farmerName, field.getName(), count);
                 
                 // Determine how many can actually be stocked
                 int toStock = Math.min(count, field.getCapacity() - field.getCurrentCount());
@@ -169,9 +162,7 @@ class Farmer extends Thread {
                 // Update farmer activity - finished stocking
                 worldState.updateFarmerActivity(farmerName, "Finished stocking " + field.getName());
                 
-                System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                                " farmer=" + farmerName + " finished_stocking_field : " + field.getName() + 
-                                "=" + toStock);
+                FarmLogger.logFarmerFinishStocking(farmerName, field.getName(), toStock);
                 
                 // Update current location
                 currentLocation = field.getName();
@@ -186,8 +177,7 @@ class Farmer extends Thread {
             worldState.updateFarmerActivity(farmerName, "Returning to enclosure");
             
             int returnTime = 10; // Base return time
-            System.out.println(tickManager.getCurrentTick() + " " + Thread.currentThread().threadId() + 
-                            " farmer=" + farmerName + " returning_to_enclosure time=" + returnTime);
+            FarmLogger.logFarmerReturning(farmerName, returnTime);
             waitForTicks(returnTime);
         }
     }
