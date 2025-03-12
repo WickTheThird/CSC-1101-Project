@@ -6,7 +6,12 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,11 +33,14 @@ public class FarmGUI extends JFrame {
     private JButton playButton;
     private Farm farm;
     private int farmerCounter;
+    private int buyerCounter;
+    private final Random random = new Random();
     
     public FarmGUI(TickManager tickManager, Farm farm) {
         this.tickManager = tickManager;
         this.farm = farm;
         this.farmerCounter = Config.NUMBER_OF_FARMERS;
+        this.buyerCounter = Config.NUMBER_OF_BUYERS;
         
         setTitle("Farm Simulation");
         setSize(1000, 600);
@@ -62,6 +70,8 @@ public class FarmGUI extends JFrame {
         playButton = new JButton("Play");
 
         JButton addFarmerButton = new JButton("Add Farmer");
+        JButton addBuyerButton = new JButton("Add Buyer");
+        JButton addDeliveryButton = new JButton("Add Delivery");
         playButton.setEnabled(false);
         
         pauseButton.addActionListener(new ActionListener() {
@@ -93,14 +103,30 @@ public class FarmGUI extends JFrame {
             }
         });
         
+        addBuyerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addNewBuyer();
+            }
+        });
+        
+        addDeliveryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addDelivery();
+            }
+        });
+        
         controlPanel.add(pauseButton);
         controlPanel.add(playButton);
         controlPanel.add(addFarmerButton);
+        controlPanel.add(addBuyerButton);
+        controlPanel.add(addDeliveryButton);
         
-        // Add panels to the frame
+        // Add panels to the frame - SWAPPED buyers and fields positions
         JPanel westPanel = new JPanel(new BorderLayout());
-        westPanel.add(fieldsTitle, BorderLayout.NORTH);
-        westPanel.add(new JScrollPane(fieldsPanel), BorderLayout.CENTER);
+        westPanel.add(buyersTitle, BorderLayout.NORTH);
+        westPanel.add(new JScrollPane(buyersPanel), BorderLayout.CENTER);
         westPanel.setPreferredSize(new Dimension(300, 300));
         
         JPanel eastPanel = new JPanel(new BorderLayout());
@@ -109,8 +135,8 @@ public class FarmGUI extends JFrame {
         eastPanel.setPreferredSize(new Dimension(300, 300));
         
         JPanel southPanel = new JPanel(new BorderLayout());
-        southPanel.add(buyersTitle, BorderLayout.NORTH);
-        southPanel.add(new JScrollPane(buyersPanel), BorderLayout.CENTER);
+        southPanel.add(fieldsTitle, BorderLayout.NORTH);
+        southPanel.add(new JScrollPane(fieldsPanel), BorderLayout.CENTER);
         southPanel.setPreferredSize(new Dimension(800, 150));
         
         JPanel topContainer = new JPanel(new BorderLayout());
@@ -141,6 +167,70 @@ public class FarmGUI extends JFrame {
         }
     }
     
+    // Duplicated from delivery manager (find a way to combine, mauybe a utility class or something like that)
+    private void addNewBuyer() {
+        if (!simulationEnded && farm != null) {
+            buyerCounter++;
+            String buyerName = String.valueOf(buyerCounter);
+            Buyer newBuyer = new Buyer(buyerName, farm, tickManager);
+            newBuyer.start();
+            System.out.println("Added new buyer " + buyerName + " to the simulation");
+        }
+    }
+    
+    // Kind of duplicate
+    private void addDelivery() {
+        if (!simulationEnded && farm != null) {
+            List<String> animals = generateDelivery();
+            
+            FarmLogger.logDelivery(formatDelivery(animals));
+            
+            farm.addToEnclosure(animals);
+            
+            System.out.println("Manual delivery added to the farm");
+        }
+    }
+    
+    private List<String> generateDelivery() {
+        List<String> animals = new ArrayList<>();
+        int totalAnimals = Config.DELIVERY_SIZE;
+        String[] animalTypes = {"pigs", "cows", "sheep", "llamas", "chickens"};
+
+        for (int i = 0; i < totalAnimals; i++) {
+            String animal = animalTypes[random.nextInt(animalTypes.length)];
+            animals.add(animal);
+        }
+
+        return animals;
+    }
+    
+    // Again, this needs to be combined with dleivery manager stuff cvause its a mess at the moment
+    private String formatDelivery(List<String> animals) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (String animal : animals) {
+            counts.put(animal, counts.getOrDefault(animal, 0) + 1);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        
+        List<String> sortedTypes = new ArrayList<>(counts.keySet());
+        Collections.sort(sortedTypes);
+        
+        for (String type : sortedTypes) {
+            int count = counts.get(type);
+            if (count > 0) {
+                if (!first) {
+                    sb.append(" ");
+                }
+                sb.append(type).append("=").append(count);
+                first = false;
+            }
+        }
+        
+        return sb.toString();
+    }
+    
     public void update() {
         SwingUtilities.invokeLater(() -> {
             updateFields();
@@ -160,14 +250,7 @@ public class FarmGUI extends JFrame {
             String status = entry.getValue().isBeingStocked() ? "Stocking" : "Ready";
             JLabel label = new JLabel(entry.getKey() + ": " + entry.getValue().getAnimalCount() + " animals (" + status + ")");
             
-            // Add color coding based on status
-            if (entry.getValue().isBeingStocked()) {
-                fieldPanel.setBackground(new Color(255, 220, 200)); // Light orange when being stocked
-            } else if (entry.getValue().getAnimalCount() > 0) {
-                fieldPanel.setBackground(new Color(220, 255, 220)); // Light green when has animals
-            } else {
-                fieldPanel.setBackground(new Color(255, 200, 200)); // Light red when empty
-            }
+            fieldPanel.setBackground(getStatusColor(status, entry.getValue().getAnimalCount()));
             
             fieldPanel.add(label);
             fieldsPanel.add(fieldPanel);
@@ -182,21 +265,7 @@ public class FarmGUI extends JFrame {
             JPanel farmerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             JLabel label = new JLabel(entry.getKey() + ": " + entry.getValue());
             
-        // Color coding based on activity
-            if (entry.getValue().contains("On break")) {
-                // Pink color for farmers on break
-                farmerPanel.setBackground(new Color(255, 182, 193)); // Light pink
-            } else if (entry.getValue().contains("Walking")) {
-                farmerPanel.setBackground(new Color(200, 220, 255)); // Light blue
-            } else if (entry.getValue().contains("Stocking")) {
-                farmerPanel.setBackground(new Color(255, 220, 200)); // Light orange
-            } else if (entry.getValue().contains("Waiting")) {
-                farmerPanel.setBackground(new Color(230, 230, 230)); // Light gray
-            } else if (entry.getValue().contains("Moving")) {
-                farmerPanel.setBackground(new Color(200, 235, 255)); // Light cyan
-            } else if (entry.getValue().contains("Returning")) {
-                farmerPanel.setBackground(new Color(220, 220, 255)); // Light lavender
-            }
+            farmerPanel.setBackground(getStatusColor(entry.getValue()));
             
             farmerPanel.add(label);
             farmersPanel.add(farmerPanel);
@@ -211,12 +280,7 @@ public class FarmGUI extends JFrame {
             JPanel buyerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             JLabel label = new JLabel(entry.getKey() + ": " + entry.getValue());
             
-            // Color coding based on activity
-            if (entry.getValue().contains("waiting")) {
-                buyerPanel.setBackground(new Color(255, 255, 200)); // Light yellow
-            } else if (entry.getValue().contains("bought")) {
-                buyerPanel.setBackground(new Color(220, 255, 220)); // Light green
-            }
+            buyerPanel.setBackground(getStatusColor(entry.getValue()));
             
             buyerPanel.add(label);
             buyersPanel.add(buyerPanel);
@@ -270,6 +334,38 @@ public class FarmGUI extends JFrame {
     
     private void updateTick() {
         tickLabel.setText("Tick: " + worldState.getCurrentTick());
+    }
+    
+    // Helper method for color coding based on status/activity - might be woerth moving to a utility class
+    private Color getStatusColor(String activity) {
+        if (activity.contains("On break")) {
+            return new Color(255, 182, 193); // Light pink
+        } else if (activity.contains("Walking")) {
+            return new Color(200, 220, 255); // Light blue
+        } else if (activity.contains("Stocking")) {
+            return new Color(255, 220, 200); // Light orange
+        } else if (activity.contains("Waiting") || activity.contains("waiting")) {
+            return new Color(230, 230, 230); // Light gray
+        } else if (activity.contains("Moving")) {
+            return new Color(200, 235, 255); // Light cyan
+        } else if (activity.contains("Returning")) {
+            return new Color(220, 220, 255); // Light lavender
+        } else if (activity.contains("Bought") || activity.contains("bought")) {
+            return new Color(220, 255, 220); // Light green
+        } else {
+            return new Color(255, 255, 200); // Default light yellow
+        }
+    }
+    
+    // Overloaded method specifically for field status since it uses different conditions
+    private Color getStatusColor(String status, int animalCount) {
+        if (status.equals("Stocking")) {
+            return new Color(255, 220, 200); // Light orange when being stocked
+        } else if (animalCount > 0) {
+            return new Color(220, 255, 220); // Light green when has animals
+        } else {
+            return new Color(255, 200, 200); // Light red when empty
+        }
     }
     
     public void showSimulationEnded() {
