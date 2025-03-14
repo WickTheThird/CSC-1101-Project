@@ -1,10 +1,13 @@
 class Main {
     public static void main(String[] args) {
+        // Initialize world state
         WorldState worldState = WorldState.getInstance();
-        
+
+        // Create and set up the farm
         Farm farm = new Farm();
         farm.addField();
 
+        // Initialize tick manager
         int tickSize = Config.TICK_SIZE;
         TickManager tickManager = new TickManager(tickSize);
         FarmLogger.setTickManager(tickManager);
@@ -18,7 +21,7 @@ class Main {
                 break;
             }
         }
-        
+
         // Only create and set up GUI if requested
         if (showGUI) {
             try {
@@ -30,31 +33,40 @@ class Main {
                 System.out.println("Continuing in headless mode");
             }
         }
-        
+
+        // Start the tick manager
         tickManager.start();
 
+        // Start the delivery manager
         DeliveryManager deliveryManager = new DeliveryManager(farm, tickManager);
         deliveryManager.start();
 
+        // Create and start farmers
         int numberOfFarmers = Config.NUMBER_OF_FARMERS;
         for (int i = 0; i < numberOfFarmers; i++) {
             Farmer farmer = new Farmer(farm, String.valueOf(i + 1), tickManager);
             farmer.start();
         }
 
+        // Create and start buyers
         int numberOfBuyers = Config.NUMBER_OF_BUYERS;
         for (int i = 0; i < numberOfBuyers; i++) {
             Buyer buyer = new Buyer(String.valueOf(i + 1), farm, tickManager);
             buyer.start();
         }
 
+        // Let the simulation run for the specified duration
         try {
             Thread.sleep(Config.SIMULATION_DURATION * tickSize);
         } catch (InterruptedException e) {
+            // Restore interrupt status and exit
             Thread.currentThread().interrupt();
         }
 
+        // Stop the tick manager
         tickManager.stopTicks();
+
+        // Notify GUI if simulation ended
         if (showGUI && worldState.getGUI() != null) {
             worldState.getGUI().showSimulationEnded();
         }
