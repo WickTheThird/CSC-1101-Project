@@ -28,6 +28,11 @@ class Buyer extends Thread {
             while (!Thread.interrupted()) {
                 waitForNextTick();
 
+                // Increment wait counter if already waiting for a field
+                if (currentField != null) {
+                    waitedTicks++;
+                }
+
                 // If waited too long, give up and reset state
                 if (waitedTicks >= MAX_WAIT_TIME) {
                     String previousField = (currentField != null) ? currentField.getName() : "none";
@@ -39,57 +44,54 @@ class Buyer extends Thread {
 
                     waitedTicks = 0;
                     currentField = null;
+                    continue; // Start fresh next tick
                 }
 
+                // Get or use current field
                 Field field;
                 if (currentField == null) {
                     field = getRandomField();
                     if (field == null) continue;
                     currentField = field;
+                    // Reset wait counter when selecting a new field
+                    waitedTicks = 0;
                 } else {
                     field = currentField;
                 }
 
-                synchronized (field) {
-                    if (field.isBeingStocked()) {
-                        waitedTicks++;
-                        worldState.updateBuyerActivity(buyerName, "Waiting - " + field.getName() + 
-                                                        " is being stocked (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
-                        worldState.addWaitingBuyer(field.getName());
-
-                        // Log waiting due to stocking
-                        FarmLogger.logBuyerWaiting(buyerName, field.getName(), "being_stocked");
-                        continue;
-                    }
-
-                    if (field.tryRemoveAnimal()) {
-                        int waited = waitedTicks;
-                        waitedTicks = 0;
-                        worldState.removeWaitingBuyer(field.getName());
-                        currentField = null;
-
-                        String animalType = field.getName();
-                        worldState.updateBuyerActivity(buyerName, "Bought a " + animalType + " animal");
-
-                        // Log successful animal purchase
-                        FarmLogger.logBuyerCollection(buyerName, field.getName(), waited);
-                    } else {
-                        waitedTicks++;
-                        String animalType = field.getName();
-                        worldState.updateBuyerActivity(buyerName, "Waiting for " + animalType + 
-                                                        " (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
-                        worldState.addWaitingBuyer(field.getName());
-
-                        // Log waiting due to empty field
-                        FarmLogger.logBuyerWaiting(buyerName, field.getName(), "empty");
-                    }
+                // Check if field is being stocked
+                if (field.isBeingStocked()) {
+                    worldState.updateBuyerActivity(buyerName, "Waiting - " + field.getName() + 
+                                    " is being stocked (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
+                    worldState.addWaitingBuyer(field.getName());
+                    FarmLogger.logBuyerWaiting(buyerName, field.getName(), "being_stocked");
+                    continue;
                 }
 
-                // Wait for a random number of ticks before next attempt
-                waitForTicks(random.nextInt(5) + 1);
+                // Try to buy an animal
+                if (field.tryRemoveAnimal()) {
+                    // Successfully bought an animal
+                    int waited = waitedTicks;
+                    worldState.removeWaitingBuyer(field.getName());
+                    String animalType = field.getName();
+                    worldState.updateBuyerActivity(buyerName, "Bought a " + animalType + " animal");
+                    FarmLogger.logBuyerCollection(buyerName, field.getName(), waited);
+                    
+                    // Reset for next purchase
+                    currentField = null;
+                    waitedTicks = 0;
+                    
+                    // Wait for a random number of ticks before next attempt
+                    waitForTicks(random.nextInt(5) + 1);
+                } else {
+                    // No animal available
+                    worldState.updateBuyerActivity(buyerName, "Waiting for " + field.getName() + 
+                                    " (" + waitedTicks + "/" + MAX_WAIT_TIME + ")");
+                    worldState.addWaitingBuyer(field.getName());
+                    FarmLogger.logBuyerWaiting(buyerName, field.getName(), "empty");
+                }
             }
         } catch (InterruptedException e) {
-            // Restore interrupt status and exit
             Thread.currentThread().interrupt();
         }
     }

@@ -31,9 +31,9 @@ class Farmer extends Thread {
                 waitForNextTick();
 
                 // 5% chance the farmer decides to take a break
-                if (!onBreak && random.nextInt(100) < 5) {
+                if (!onBreak && random.nextInt(100) < Config.FARMER_BREAK_CHANCE) {
                     onBreak = true;
-                    breakCounter = 20 + random.nextInt(20); // Break for 20-40 ticks
+                    breakCounter = Config.FARMER_BREAK_MIN_DURATION + random.nextInt(Config.FARMER_BREAK_MAX_DURATION - Config.FARMER_BREAK_MIN_DURATION + 1);
                     worldState.updateFarmerActivity(farmerName, "On break for " + breakCounter + " ticks");
                     FarmLogger.logFarmerBreak(farmerName, breakCounter);
                     continue;
@@ -55,20 +55,14 @@ class Farmer extends Thread {
                 // Update status while waiting at enclosure
                 worldState.updateFarmerActivity(farmerName, "Waiting at enclosure");
 
-                // Short delay to allow GUI to update
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-
-                // Take animals from enclosure
-                List<String> animals = farm.takeFromEnclosure(10);
-
-                if (!animals.isEmpty()) {
-                    FarmLogger.logFarmerCollection(farmerName, animals.size());
-                    stockAnimals(animals);
+                if (farm.hasAnimalsInEnclosure()) {
+                    // Take animals from enclosure
+                    List<String> animals = farm.takeFromEnclosure(10);
+                    
+                    if (!animals.isEmpty()) {
+                        FarmLogger.logFarmerCollection(farmerName, animals.size());
+                        stockAnimals(animals);
+                    }
                 }
             }
         } catch (InterruptedException e) {

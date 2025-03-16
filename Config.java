@@ -5,4 +5,7 @@ public class Config {
     public static int DELIVERY_FREQUENCY = 100;
     public static int SIMULATION_DURATION = 10000;
     public static final int DELIVERY_SIZE = 10;
+    public static int FARMER_BREAK_CHANCE = 5;
+    public static int FARMER_BREAK_MIN_DURATION = 20;
+    public static int FARMER_BREAK_MAX_DURATION = 40;
 }

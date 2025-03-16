@@ -66,4 +66,8 @@ class Farm {
         this.enclosure = new ArrayList<>(enclosureSize);
     }
 
+    public synchronized boolean hasAnimalsInEnclosure() {
+        return !enclosure.isEmpty();
+    }
+
 }
