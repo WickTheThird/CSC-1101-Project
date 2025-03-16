@@ -8,4 +8,6 @@ public class Config {
     public static int FARMER_BREAK_CHANCE = 5;
     public static int FARMER_BREAK_MIN_DURATION = 20;
     public static int FARMER_BREAK_MAX_DURATION = 40;
+    public static int FIELD_CAPACITY = 50;
+    public static int FIELD_INITIAL_ANIMAL_COUNT = 5;
 }

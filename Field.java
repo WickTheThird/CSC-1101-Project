@@ -3,19 +3,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class Field {
     private final String name;
-    private int capacity = 50;
-    private int currentCount = 0;
+    private final int capacity = Config.FIELD_CAPACITY;
+    private int currentCount;
     private boolean beingStocked = false;
     private final WorldState worldState = WorldState.getInstance();
     
-    // ReentrantLock with fairness policy set to true for first in firsy out ordering
+    // ReentrantLock with fairness policy set to true for first in first out ordering
     private final ReentrantLock lock = new ReentrantLock(true);
     private final Condition stockingCondition = lock.newCondition();
     private final Condition animalAvailableCondition = lock.newCondition();
 
     public Field(String name) {
         this.name = name;
-        this.currentCount = 5;
+        this.currentCount = Config.FIELD_INITIAL_ANIMAL_COUNT;
     }
 
     public String getName() {
@@ -45,15 +45,6 @@ class Field {
         }
     }
 
-    public boolean canAddAnimals(int count) {
-        lock.lock();
-        try {
-            return currentCount + count <= capacity;
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public void addAnimals(int count) {
         lock.lock();
         try {
@@ -61,19 +52,6 @@ class Field {
             worldState.updateFieldCount(name, currentCount);
             // Signal all waiting buyers that animals are now available
             animalAvailableCondition.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public boolean removeAnimals(int count) {
-        lock.lock();
-        try {
-            if (currentCount >= count) {
-                currentCount -= count;
-                return true;
-            }
-            return false;
         } finally {
             lock.unlock();
         }

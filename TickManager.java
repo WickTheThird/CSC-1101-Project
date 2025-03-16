@@ -1,41 +1,30 @@
 // Manages the simulation ticks.
 // The TickManager generates ticks at a fixed interval, which can be paused and resumed.
-class TickManager extends Thread {
-    private final int tickSize; // Time between ticks in milliseconds
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class TickManager extends Thread {
+    private final int tickSize;
     private int currentTick = 0;
     private boolean running = true;
     private boolean paused = false;
     private final WorldState worldState = WorldState.getInstance();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // Constructor to set the tick size
     public TickManager(int tickSize) {
         this.tickSize = tickSize;
     }
 
-    @Override
-    public void run() {
-        while (running) {
-            try {
-                // Wait for the specified tick size
-                Thread.sleep(tickSize);
-
-                synchronized (this) {
-                    // If paused, wait until resumed
-                    while (paused && running) {
-                        wait();
-                    }
-
-                    // If still running after resume, increment the tick
-                    if (running) {
-                        incrementTick();
-                    }
+    public void start() {
+        scheduler.scheduleAtFixedRate(() -> {
+            synchronized (TickManager.this) {
+                if (!paused && running) {
+                    incrementTick();
                 }
-            } catch (InterruptedException e) {
-                // Restore interrupt status and exit loop
-                Thread.currentThread().interrupt();
-                break;
             }
-        }
+        }, tickSize, tickSize, TimeUnit.MILLISECONDS);
     }
 
     // Increment the current tick count and notify all waiting threads
@@ -54,6 +43,7 @@ class TickManager extends Thread {
     public synchronized void stopTicks() {
         running = false;
         notifyAll();
+        scheduler.shutdownNow();
     }
 
     // Pause tick generation
@@ -69,8 +59,4 @@ class TickManager extends Thread {
         FarmLogger.logResumed(currentTick);
     }
 
-    // Check if tick generation is currently paused
-    public synchronized boolean isPaused() {
-        return paused;
-    }
 }

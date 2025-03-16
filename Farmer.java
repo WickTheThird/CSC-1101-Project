@@ -86,28 +86,8 @@ class Farmer extends Thread {
         // Group animals by type
         Map<String, Integer> animalCounts = countAnimalsByType(animals);
 
-        // Sort fields by priority
-        List<Map.Entry<String, Integer>> sortedAnimals = new ArrayList<>(animalCounts.entrySet());
-        sortedAnimals.sort((a, b) -> {
-            Field fieldA = findSuitableField(a.getKey());
-            Field fieldB = findSuitableField(b.getKey());
-
-            // Priority: fields with waiting buyers
-            boolean aHasWaiting = worldState.hasWaitingBuyers(a.getKey());
-            boolean bHasWaiting = worldState.hasWaitingBuyers(b.getKey());
-
-            if (aHasWaiting && !bHasWaiting) return -1;
-            if (!aHasWaiting && bHasWaiting) return 1;
-
-            // Priority: fields with lowest stock ratio
-            if (fieldA != null && fieldB != null) {
-                double aRatio = (double) fieldA.getCurrentCount() / fieldA.getCapacity();
-                double bRatio = (double) fieldB.getCurrentCount() / fieldB.getCapacity();
-                return Double.compare(aRatio, bRatio);
-            }
-
-            return 0;
-        });
+        // Sort fields by priority using the extracted method
+        List<Map.Entry<String, Integer>> sortedAnimals = getSortedAnimals(animalCounts);
 
         // Current location of the farmer
         String currentLocation = "enclosure";
@@ -181,5 +161,31 @@ class Farmer extends Thread {
             counts.put(animal, counts.getOrDefault(animal, 0) + 1);
         }
         return counts;
+    }
+
+    // Extracted method to sort animals by priority
+    private List<Map.Entry<String, Integer>> getSortedAnimals(Map<String, Integer> animalCounts) {
+        List<Map.Entry<String, Integer>> sortedAnimals = new ArrayList<>(animalCounts.entrySet());
+        sortedAnimals.sort((a, b) -> {
+            Field fieldA = findSuitableField(a.getKey());
+            Field fieldB = findSuitableField(b.getKey());
+
+            // Priority: fields with waiting buyers
+            boolean aHasWaiting = worldState.hasWaitingBuyers(a.getKey());
+            boolean bHasWaiting = worldState.hasWaitingBuyers(b.getKey());
+
+            if (aHasWaiting && !bHasWaiting) return -1;
+            if (!aHasWaiting && bHasWaiting) return 1;
+
+            // Priority: fields with the lowest stock ratio
+            if (fieldA != null && fieldB != null) {
+                double aRatio = (double) fieldA.getCurrentCount() / fieldA.getCapacity();
+                double bRatio = (double) fieldB.getCurrentCount() / fieldB.getCapacity();
+                return Double.compare(aRatio, bRatio);
+            }
+
+            return 0;
+        });
+        return sortedAnimals;
     }
 }

@@ -57,7 +57,7 @@ class Main {
 
         // Let the simulation run for the specified duration
         try {
-            Thread.sleep(Config.SIMULATION_DURATION * tickSize);
+            Thread.sleep((long) Config.SIMULATION_DURATION * tickSize);
         } catch (InterruptedException e) {
             // Restore interrupt status and exit
             Thread.currentThread().interrupt();

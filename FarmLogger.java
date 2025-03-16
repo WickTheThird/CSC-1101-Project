@@ -115,9 +115,6 @@ public class FarmLogger {
         }
     }
     
-    public static synchronized void logTick(int tickCount) {
-    }
-    
     public static synchronized void logPaused(int tickCount) {
         checkAndLogTickHeader(tickCount);
         System.out.println("Simulation paused at tick: " + tickCount);

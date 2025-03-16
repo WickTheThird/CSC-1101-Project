@@ -37,8 +37,6 @@ public class WorldState {
     
     // Singleton instance
     private static WorldState instance;
-
-    private int enclosureCount = 0;
     
     // Constructor
     private WorldState() {
@@ -104,14 +102,6 @@ public class WorldState {
         fieldStates.put(fieldName, new FieldState(animalCount, isBeingStocked));
     }
     
-    // Update enclosure state with counts of each animal type
-    public void updateEnclosureAnimals(Map<String, Integer> animalCounts) {
-        synchronized(enclosureState) {
-            enclosureState.clear();
-            enclosureState.putAll(animalCounts);
-        }
-    }
-    
     // Add animals to enclosure
     public void addAnimalsToEnclosure(List<String> animals) {
         if (animals == null || animals.isEmpty()) return;
@@ -131,18 +121,11 @@ public class WorldState {
     }
 
     public void updateEnclosureCount(int count) {
-        this.enclosureCount = count;
-        
-        // Force immediate GUI update
         if (gui != null) {
             SwingUtilities.invokeLater(() -> gui.update());
         }
     }
 
-    public int getEnclosureCount() {
-        return enclosureCount;
-    }
-    
     // Remove animals from enclosure
     public void removeAnimalsFromEnclosure(List<String> animals) {
         if (animals == null || animals.isEmpty()) return;
@@ -230,28 +213,12 @@ public class WorldState {
             System.err.println("Error writing to log file: " + e.getMessage());
         }
     }
-    
-    // Inner class to represent field state
-    public static class FieldState {
-        private final int animalCount;
-        private final boolean isBeingStocked;
-        
-        public FieldState(int animalCount, boolean isBeingStocked) {
-            this.animalCount = animalCount;
-            this.isBeingStocked = isBeingStocked;
-        }
-        
-        public int getAnimalCount() {
-            return animalCount;
-        }
 
-        public boolean isBeingStocked() {
-            return isBeingStocked;
-        }
-        
+    // Inner class to represent field state
+    public record FieldState(int animalCount, boolean isBeingStocked) {
         @Override
         public String toString() {
-            return "Animal Count: " + animalCount + 
+            return "Animal Count: " + animalCount +
                    ", Being Stocked: " + isBeingStocked;
         }
     }
@@ -277,24 +244,6 @@ public class WorldState {
 
     public boolean hasWaitingBuyers(String fieldName) {
         return waitingBuyers.getOrDefault(fieldName, 0) > 0;
-    }
-    public int getWaitingBuyersCount(String fieldName) {
-        return waitingBuyers.getOrDefault(fieldName, 0);
-    }
-
-    public Map<String, Integer> getWaitingBuyers() {
-        return Collections.unmodifiableMap(waitingBuyers);
-    }
-
-    public void setEnclosureState(Map<String, Integer> newState) {
-        synchronized(enclosureState) {
-            enclosureState.clear();
-            enclosureState.putAll(newState);
-        }
-
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
     }
 
     public void updateFieldCount(String fieldName, int count) {

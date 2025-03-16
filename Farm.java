@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class Farm {
+public class Farm {
     private List<String> enclosure = new ArrayList<>();
     private List<Field> fields = new ArrayList<>();
     private final WorldState worldState = WorldState.getInstance();
@@ -44,7 +44,7 @@ class Farm {
 
         List<String> taken = new ArrayList<>();
         for (int i = 0; i < maxAnimals && !enclosure.isEmpty(); i++) {
-            taken.add(enclosure.remove(0));
+            taken.add(enclosure.removeFirst());
         }
         worldState.removeAnimalsFromEnclosure(taken);
         return taken;
@@ -52,18 +52,6 @@ class Farm {
 
     public List<Field> getFields() {
         return fields;
-    }
-
-    public void setFields(List<Field> fields) {
-        this.fields = fields;
-    }
-
-    public int getEnclosureSize() {
-        return enclosure.size();
-    }
-
-    public void setEnclosureSize(int enclosureSize) {
-        this.enclosure = new ArrayList<>(enclosureSize);
     }
 
     public synchronized boolean hasAnimalsInEnclosure() {
