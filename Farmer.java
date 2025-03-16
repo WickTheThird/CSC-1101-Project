@@ -163,7 +163,6 @@ class Farmer extends Thread {
         return counts;
     }
 
-    // Extracted method to sort animals by priority
     private List<Map.Entry<String, Integer>> getSortedAnimals(Map<String, Integer> animalCounts) {
         List<Map.Entry<String, Integer>> sortedAnimals = new ArrayList<>(animalCounts.entrySet());
         sortedAnimals.sort((a, b) -> {

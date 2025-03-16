@@ -4,7 +4,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class TickManager extends Thread {
+public class TickManager {
     private final int tickSize;
     private int currentTick = 0;
     private boolean running = true;

@@ -2,8 +2,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Farm {
-    private List<String> enclosure = new ArrayList<>();
-    private List<Field> fields = new ArrayList<>();
+    private final List<String> enclosure = new ArrayList<>();
+    private final List<Field> fields = new ArrayList<>();
     private final WorldState worldState = WorldState.getInstance();
 
     public void addField() {
@@ -27,7 +27,7 @@ public class Farm {
         
         // Update WorldState for GUI
         worldState.addAnimalsToEnclosure(animals);
-        worldState.updateEnclosureCount(enclosure.size());
+        worldState.updateEnclosureGUI();
         
         // Notify waiting farmers
         notifyAll();

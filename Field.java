@@ -1,9 +1,9 @@
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-class Field {
+public class Field {
     private final String name;
-    private final int capacity = Config.FIELD_CAPACITY;
+    private static final int capacity = Config.FIELD_CAPACITY;
     private int currentCount;
     private boolean beingStocked = false;
     private final WorldState worldState = WorldState.getInstance();

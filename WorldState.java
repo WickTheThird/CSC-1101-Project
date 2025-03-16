@@ -37,7 +37,7 @@ public class WorldState {
     
     // Singleton instance
     private static WorldState instance;
-    
+
     // Constructor
     private WorldState() {
         // Initialize log file
@@ -120,7 +120,7 @@ public class WorldState {
         }
     }
 
-    public void updateEnclosureCount(int count) {
+    public void updateEnclosureGUI() {
         if (gui != null) {
             SwingUtilities.invokeLater(() -> gui.update());
         }
