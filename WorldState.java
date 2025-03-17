@@ -1,11 +1,3 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,40 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.SwingUtilities;
 
 public class WorldState {
-    private static final String LOG_FILE_PATH = "farm_simulation_log.txt";
-    
     // Maps to track activities of farmers and buyers
-    private final Map<String, String> farmerActivities = new ConcurrentHashMap<>();
+    private final Map<String, String> farmerActivities = new ConcurrentHashMap<>(); // Using ConcurrentHashMap helps with performance over a synchronized HashMap or class
     private final Map<String, String> buyerActivities = new ConcurrentHashMap<>();
     private final Map<String, Integer> waitingBuyers = new ConcurrentHashMap<>();
+    private final Map<String, FieldState> fieldStates = new ConcurrentHashMap<>(); // Track field states (animal counts and being stocked status)
+    private final Map<String, Integer> enclosureState = new ConcurrentHashMap<>(); // Track enclosure state
 
-    
-    // Track field states (animal counts and being stocked status)
-    private final Map<String, FieldState> fieldStates = new ConcurrentHashMap<>();
-    
-    // Track enclosure state
-    private final Map<String, Integer> enclosureState = new ConcurrentHashMap<>();
-    
-    // Current tick
-    private volatile int currentTick = 0;
-    
-    // GUI Reference
-    private FarmGUI gui;
-    
-    // Singleton instance
-    private static WorldState instance;
+    private volatile int currentTick = 0; // Current tick
+    private FarmGUI gui; // GUI Reference
+    private static WorldState instance; // Singleton instance
 
     // Constructor
     private WorldState() {
-        // Initialize log file
-        try {
-            Files.write(Paths.get(LOG_FILE_PATH), 
-                       ("Farm Simulation Log - Started at " + 
-                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\n").getBytes(),
-                       StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            System.err.println("Error initializing log file: " + e.getMessage());
-        }
+        // Initialize log file using FarmLogger
+        FarmLogger.initializeLogFile();
         
         // Initialize animal types in enclosure
         enclosureState.put("pigs", 0);
@@ -70,6 +43,13 @@ public class WorldState {
     public void setGUI(FarmGUI gui) {
         this.gui = gui;
     }
+
+    // Common method for GUI updates
+    public void updateGUI() {
+        if (gui != null) {
+            SwingUtilities.invokeLater(() -> gui.update());
+        }
+    }
     
     // Update the current tick and log the state
     public synchronized void updateTick(int tick) {
@@ -77,9 +57,7 @@ public class WorldState {
         logState();
         
         // Update GUI if available
-        if (gui != null) {
-            gui.update();
-        }
+        updateGUI();
     }
     
     // Initialize field states
@@ -87,7 +65,7 @@ public class WorldState {
         fieldStates.put(fieldName, new FieldState(animalCount, false));
     }
     
-    // Update farmer activity
+    // Update farmer activity 
     public void updateFarmerActivity(String farmerName, String activity) {
         farmerActivities.put(farmerName, activity);
     }
@@ -106,42 +84,23 @@ public class WorldState {
     public void addAnimalsToEnclosure(List<String> animals) {
         if (animals == null || animals.isEmpty()) return;
         
-        synchronized (enclosureState) {
-            // Count animals by type
-            for (String animal : animals) {
-                int current = enclosureState.getOrDefault(animal, 0);
-                enclosureState.put(animal, current + 1);
-            }
+        // Concurrent hash map provides compute method for atomic updates
+        for (String animal : animals) {
+            enclosureState.compute(animal, (k, v) -> (v == null) ? 1 : v + 1);
         }
         
-        // Force immediate GUI update
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
-    }
-
-    public void updateEnclosureGUI() {
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
+        updateGUI();
     }
 
     // Remove animals from enclosure
     public void removeAnimalsFromEnclosure(List<String> animals) {
         if (animals == null || animals.isEmpty()) return;
-        
-        synchronized(enclosureState) {
-            for (String animal : animals) {
-                int current = enclosureState.getOrDefault(animal, 0);
-                if (current > 0) {
-                    enclosureState.put(animal, current - 1);
-                }
-            }
+        // Again, methods provided by ConcurrentHashMap are super useful for maintaining atomicity
+        for (String animal : animals) {
+            enclosureState.compute(animal, (k, v) -> (v == null || v <= 0) ? 0 : v - 1);
         }
         
-        if (gui != null) {
-            gui.update();
-        }
+        updateGUI();
     }
     
     // Getters for GUI to access data
@@ -174,44 +133,14 @@ public class WorldState {
     
     // Log the current state to file
     private void logState() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n=== TICK ").append(currentTick).append(" ===\n");
-        
-        // Log enclosure state
-        sb.append("Enclosure: ");
-        for (Map.Entry<String, Integer> entry : enclosureState.entrySet()) {
-            if (entry.getValue() > 0) {
-                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
-            }
-        }
-        sb.append("\n");
-        
-        // Log field states
-        sb.append("Fields:\n");
-        for (Map.Entry<String, FieldState> entry : fieldStates.entrySet()) {
-            sb.append("  ").append(entry.getKey()).append(": ")
-              .append(entry.getValue()).append("\n");
-        }
-        
-        // Log farmer states
-        sb.append("Farmers:\n");
-        for (Map.Entry<String, String> entry : farmerActivities.entrySet()) {
-            sb.append("  ").append(entry.getKey()).append(": ")
-              .append(entry.getValue()).append("\n");
-        }
-        
-        // Log buyer states
-        sb.append("Buyers:\n");
-        for (Map.Entry<String, String> entry : buyerActivities.entrySet()) {
-            sb.append("  ").append(entry.getKey()).append(": ")
-              .append(entry.getValue()).append("\n");
-        }
-        
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE_PATH, true))) {
-            writer.write(sb.toString());
-        } catch (IOException e) {
-            System.err.println("Error writing to log file: " + e.getMessage());
-        }
+        // Use FarmLogger to log the world state inside the external logging file
+        FarmLogger.logWorldState(
+            currentTick, 
+            Collections.unmodifiableMap(enclosureState),
+            Collections.unmodifiableMap(fieldStates),
+            Collections.unmodifiableMap(farmerActivities),
+            Collections.unmodifiableMap(buyerActivities)
+        );
     }
 
     // Inner class to represent field state
@@ -224,11 +153,9 @@ public class WorldState {
     }
 
     public void addWaitingBuyer(String fieldName) {
-        waitingBuyers.put(fieldName, waitingBuyers.getOrDefault(fieldName, 0) + 1);
+        waitingBuyers.compute(fieldName, (k, v) -> (v == null) ? 1 : v + 1); // Using compute instead of put for its atimic nature
 
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
+        updateGUI();
     }
 
     public void removeWaitingBuyer(String fieldName) {
@@ -237,16 +164,15 @@ public class WorldState {
             waitingBuyers.put(fieldName, currentCount - 1);
         }
 
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
+        updateGUI();
     }
 
     public boolean hasWaitingBuyers(String fieldName) {
         return waitingBuyers.getOrDefault(fieldName, 0) > 0;
     }
 
-    public void updateFieldCount(String fieldName, int count) {
+    // This method is synchronized to ensure thread safety when multiple threads attempt to update field states concurrently.
+    public synchronized void updateFieldCount(String fieldName, int count) {
         FieldState currentState = fieldStates.get(fieldName);
         if (currentState != null) {
             boolean isStocking = currentState.isBeingStocked();
@@ -256,8 +182,6 @@ public class WorldState {
         }
 
         // Ensure GUI updates
-        if (gui != null) {
-            SwingUtilities.invokeLater(() -> gui.update());
-        }
+        updateGUI();
     }
 }

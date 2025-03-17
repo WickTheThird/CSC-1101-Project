@@ -1,6 +1,68 @@
+import java.util.Map;
+
 public class FarmLogger {
     private static TickManager tickManager;
     private static int lastLoggedTick = -1;
+    private static final String LOG_FILE_PATH = "farm_simulation_log.txt";
+    
+    // Initialize log file
+    public static void initializeLogFile() {
+        try {
+            java.nio.file.Files.write(
+                java.nio.file.Paths.get(LOG_FILE_PATH), 
+                ("Farm Simulation Log - Started at " + 
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\n").getBytes(),
+                java.nio.file.StandardOpenOption.CREATE, 
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (java.io.IOException e) {
+            System.err.println("Error initializing log file: " + e.getMessage());
+        }
+    }
+    
+    // Method to log world state to file
+    public static synchronized void logWorldState(int currentTick, Map<String, Integer> enclosureState,
+                                                 Map<String, WorldState.FieldState> fieldStates,
+                                                 Map<String, String> farmerActivities,
+                                                 Map<String, String> buyerActivities) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n=== TICK ").append(currentTick).append(" ===\n");
+        
+        // Log enclosure state
+        sb.append("Enclosure: ");
+        for (Map.Entry<String, Integer> entry : enclosureState.entrySet()) {
+            if (entry.getValue() > 0) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
+            }
+        }
+        sb.append("\n");
+        
+        // Log field states
+        sb.append("Fields:\n");
+        for (Map.Entry<String, WorldState.FieldState> entry : fieldStates.entrySet()) {
+            sb.append("  ").append(entry.getKey()).append(": ")
+              .append(entry.getValue()).append("\n");
+        }
+        
+        // Log farmer states
+        sb.append("Farmers:\n");
+        for (Map.Entry<String, String> entry : farmerActivities.entrySet()) {
+            sb.append("  ").append(entry.getKey()).append(": ")
+              .append(entry.getValue()).append("\n");
+        }
+        
+        // Log buyer states
+        sb.append("Buyers:\n");
+        for (Map.Entry<String, String> entry : buyerActivities.entrySet()) {
+            sb.append("  ").append(entry.getKey()).append(": ")
+              .append(entry.getValue()).append("\n");
+        }
+        
+        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(LOG_FILE_PATH, true))) {
+            writer.write(sb.toString());
+        } catch (java.io.IOException e) {
+            System.err.println("Error writing to log file: " + e.getMessage());
+        }
+    }
     
     public static void setTickManager(TickManager manager) {
         tickManager = manager;

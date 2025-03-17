@@ -27,7 +27,7 @@ public class Farm {
         
         // Update WorldState for GUI
         worldState.addAnimalsToEnclosure(animals);
-        worldState.updateEnclosureGUI();
+        worldState.updateGUI();
         
         // Notify waiting farmers
         notifyAll();
