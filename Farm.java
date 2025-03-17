@@ -33,7 +33,9 @@ public class Farm {
         notifyAll();
     }
 
+    // Take up to maxAnimals from the enclosure
     public synchronized List<String> takeFromEnclosure(int maxAnimals) {
+        // Wait until there are animals delivered into the enclosure
         while (enclosure.isEmpty()) {
             try {
                 wait();
@@ -41,7 +43,7 @@ public class Farm {
                 Thread.currentThread().interrupt();
             }
         }
-
+        // ArrayList means animals are removed in a FIFO order
         List<String> taken = new ArrayList<>();
         for (int i = 0; i < maxAnimals && !enclosure.isEmpty(); i++) {
             taken.add(enclosure.removeFirst());
@@ -50,6 +52,7 @@ public class Farm {
         return taken;
     }
 
+    // Simple getter methods for fields and enclosure
     public List<Field> getFields() {
         return fields;
     }

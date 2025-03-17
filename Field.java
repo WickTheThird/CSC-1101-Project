@@ -17,7 +17,7 @@ public class Field {
         this.name = name;
         this.currentCount = Config.FIELD_INITIAL_ANIMAL_COUNT;
     }
-
+    // Simple getter methods for name, currentCount, and capacity (used primarily by Farmers & Buyers for accurate logging)
     public String getName() {
         lock.lock();
         try {
@@ -45,6 +45,7 @@ public class Field {
         }
     }
 
+    // Using a ReentrantLock to ensure thread safety when adding animals to the field
     public void addAnimals(int count) {
         lock.lock();
         try {
@@ -56,7 +57,8 @@ public class Field {
             lock.unlock();
         }
     }
-    
+
+    // Uses condition variables to ensure that only one farmer can stock the field at a time
     public void startStocking() throws InterruptedException {
         lock.lock();
         try {
@@ -70,6 +72,7 @@ public class Field {
         }
     }
 
+    // Used by Farmers and Buyers to check if the field is currently being stocked (to avoid conflicts)
     public boolean isBeingStocked() {
         lock.lock();
         try {
@@ -79,6 +82,7 @@ public class Field {
         }
     }
     
+    // Uses signalAll() to notify all waiting threads that the field is no longer being stocked
     public void finishStocking() {
         lock.lock();
         try {
@@ -91,6 +95,7 @@ public class Field {
         }
     }
 
+    // Method used by Buyers to attempt to buy an animal from the field
     public boolean tryRemoveAnimal() {
         lock.lock();
         try {

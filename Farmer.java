@@ -57,7 +57,7 @@ class Farmer extends Thread {
 
                 if (farm.hasAnimalsInEnclosure()) {
                     // Take animals from enclosure
-                    List<String> animals = farm.takeFromEnclosure(10);
+                    List<String> animals = farm.takeFromEnclosure(Config.FARMER_MAX_ANIMALS);
                     
                     if (!animals.isEmpty()) {
                         FarmLogger.logFarmerCollection(farmerName, animals.size());
