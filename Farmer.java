@@ -72,13 +72,7 @@ class Farmer extends Thread {
 
     // Wait for the next simulation tick
     private void waitForNextTick() throws InterruptedException {
-        synchronized (tickManager) {
-            int currentTick = tickManager.getCurrentTick();
-            if (lastCheckedTick == currentTick) {
-                tickManager.wait();
-            }
-            lastCheckedTick = currentTick;
-        }
+        lastCheckedTick = tickManager.waitForNextTick(lastCheckedTick);
     }
 
     // Stock animals into fields

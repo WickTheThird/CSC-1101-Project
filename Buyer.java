@@ -116,12 +116,6 @@ class Buyer extends Thread {
 
     // Wait for the next tick from the TickManager.
     private void waitForNextTick() throws InterruptedException {
-        synchronized (tickManager) {
-            int currentTick = tickManager.getCurrentTick();
-            if (lastCheckedTick == currentTick) {
-                tickManager.wait(); // Wait for the next tick
-            }
-            lastCheckedTick = tickManager.getCurrentTick();
-        }
+        lastCheckedTick = tickManager.waitForNextTick(lastCheckedTick);
     }
 }

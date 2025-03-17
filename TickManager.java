@@ -59,4 +59,12 @@ public class TickManager {
         FarmLogger.logResumed(currentTick);
     }
 
+    public synchronized int waitForNextTick(int lastCheckedTick) throws InterruptedException {
+        int currentTick = getCurrentTick();
+        if (lastCheckedTick == currentTick) {
+            wait();
+        }
+        return getCurrentTick();
+    }
+
 }

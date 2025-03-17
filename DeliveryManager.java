@@ -39,13 +39,7 @@ class DeliveryManager extends Thread {
     }
 
     private void waitForNextTick() throws InterruptedException {
-        synchronized (tickManager) {
-            int currentTick = tickManager.getCurrentTick();
-            if (lastCheckedTick == currentTick) {
-                tickManager.wait();
-            }
-            lastCheckedTick = currentTick;
-        }
+        lastCheckedTick = tickManager.waitForNextTick(lastCheckedTick);
     }
 
     private List<String> generateDelivery() {
