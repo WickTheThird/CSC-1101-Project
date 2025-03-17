@@ -15,7 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 public class FarmGUI extends JFrame {
-    private final WorldState worldState = WorldState.getInstance();
+    private final WorldState worldState = WorldState.getInstance(); // imports WorldState which kind of acts as a Singleton state manager for displaying the current worldstate in the GUI
     private final JPanel fieldsPanel;
     private final JPanel farmersPanel;
     private final JPanel buyersPanel;
@@ -40,7 +40,7 @@ public class FarmGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Create panels
+        // Create GUI panels
         fieldsPanel = new JPanel(new GridLayout(0, 1));
         farmersPanel = new JPanel(new GridLayout(0, 1));
         buyersPanel = new JPanel(new GridLayout(0, 1));
@@ -48,7 +48,6 @@ public class FarmGUI extends JFrame {
         tickLabel = new JLabel("Tick: 0", JLabel.CENTER);
         tickLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
-        // Add titles to sections
         JLabel fieldsTitle = new JLabel("Fields", JLabel.CENTER);
         fieldsTitle.setFont(new Font("Arial", Font.BOLD, 14));
         JLabel farmersTitle = new JLabel("Farmers", JLabel.CENTER);
@@ -84,9 +83,7 @@ public class FarmGUI extends JFrame {
         });
 
         addFarmerButton.addActionListener(e -> addNewFarmer());
-
         addBuyerButton.addActionListener(e -> addNewBuyer());
-
         addDeliveryButton.addActionListener(e -> addDelivery());
 
         controlPanel.add(pauseButton);
@@ -95,7 +92,6 @@ public class FarmGUI extends JFrame {
         controlPanel.add(addBuyerButton);
         controlPanel.add(addDeliveryButton);
 
-        // Add panels to the frame - SWAPPED buyers and fields positions
         JPanel westPanel = new JPanel(new BorderLayout());
         westPanel.add(buyersTitle, BorderLayout.NORTH);
         westPanel.add(new JScrollPane(buyersPanel), BorderLayout.CENTER);
@@ -139,6 +135,7 @@ public class FarmGUI extends JFrame {
         }
     }
 
+    // Method to dynamically add a new buyer to the simulation
     private void addNewBuyer() {
         if (!simulationEnded && farm != null) {
             buyerCounter++;
@@ -149,6 +146,7 @@ public class FarmGUI extends JFrame {
         }
     }
 
+    // Method to dynamically add a new delivery to the simulation
     private void addDelivery() {
         if (!simulationEnded && farm != null) {
             List<String> animals = DeliveryManager.generateDelivery();
@@ -161,6 +159,7 @@ public class FarmGUI extends JFrame {
         }
     }
 
+    // Standardized method to update the GUI with the latest state of the simulation that calls other update methods
     public void update() {
         SwingUtilities.invokeLater(() -> {
             updateFields();
@@ -219,6 +218,7 @@ public class FarmGUI extends JFrame {
         buyersPanel.repaint();
     }
 
+    // Keeps track of what should be displayed inside the enclosure panel of the GUI
     private void updateEnclosure() {
         enclosurePanel.removeAll();
         enclosurePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
@@ -298,6 +298,7 @@ public class FarmGUI extends JFrame {
         }
     }
 
+    // Graphical indication that the number of cycles specified in the configuration file has been reached
     public void showSimulationEnded() {
         SwingUtilities.invokeLater(() -> {
             simulationEnded = true;
