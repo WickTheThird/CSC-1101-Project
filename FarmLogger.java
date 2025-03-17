@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FarmLogger {
@@ -66,6 +70,40 @@ public class FarmLogger {
     
     public static void setTickManager(TickManager manager) {
         tickManager = manager;
+    }
+    
+    /**
+     * Formats a list of animals into a readable string showing counts of each animal type.
+     * @param animals List of animals to format
+     * @return Formatted string representation (e.g., "cows=3 pigs=2")
+     */
+    public static String formatDelivery(List<String> animals) {
+        // Count occurrences of each animal type
+        Map<String, Integer> counts = new HashMap<>();
+        for (String animal : animals) {
+            counts.put(animal, counts.getOrDefault(animal, 0) + 1);
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        
+        // Sort animal types alphabetically for consistent output
+        List<String> sortedTypes = new ArrayList<>(counts.keySet());
+        Collections.sort(sortedTypes);
+        
+        // Build the output string
+        for (String type : sortedTypes) {
+            int count = counts.get(type);
+            if (count > 0) {
+                if (!first) {
+                    sb.append(" ");
+                }
+                sb.append(type).append("=").append(count);
+                first = false;
+            }
+        }
+        
+        return sb.toString();
     }
     
     public static synchronized void logDelivery(String formattedAnimals) {

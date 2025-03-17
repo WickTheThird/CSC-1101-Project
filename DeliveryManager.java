@@ -1,15 +1,17 @@
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
+/**
+ * Manages the periodic delivery of animals to the farm.
+ * Runs as a separate thread and delivers random animals based on configuration settings.
+ */
 class DeliveryManager extends Thread {
     private final Farm farm;
     private final Random random = new Random();
-    private final TickManager tickManager;
+    private final TickManager tickManager; // Manages the timing system
     private int lastCheckedTick = 0;
+    private static final Random staticRandom = new Random();
 
     public DeliveryManager(Farm farm, TickManager tickManager) {
         this.farm = farm;
@@ -20,14 +22,17 @@ class DeliveryManager extends Thread {
     public void run() {
         while (true) {
             try {
-                waitForNextTick();
-
+                // Wait for the next tick before processing
+                lastCheckedTick = tickManager.waitForNextTick(lastCheckedTick);
+                
+                // Randomly determine if a delivery should happen this tick
                 if (random.nextInt(Config.DELIVERY_FREQUENCY) == 0) {
                     List<String> animals = generateDelivery();
                     
-                    // First update the GUI to show delivery
-                    FarmLogger.logDelivery(formatDelivery(animals));
+                    // First log the delivery event
+                    FarmLogger.logDelivery(FarmLogger.formatDelivery(animals));
                     
+                    // Add the animals to the farm enclosure
                     farm.addToEnclosure(animals);
                 }
                 
@@ -38,46 +43,18 @@ class DeliveryManager extends Thread {
         }
     }
 
-    private void waitForNextTick() throws InterruptedException {
-        lastCheckedTick = tickManager.waitForNextTick(lastCheckedTick);
-    }
-
-    private List<String> generateDelivery() {
+    // Creates a randomized list of animals to deliver to the farm
+    public static List<String> generateDelivery() {
         List<String> animals = new ArrayList<>();
         int totalAnimals = Config.DELIVERY_SIZE;
         String[] animalTypes = {"pigs", "cows", "sheep", "llamas", "chickens"};
 
+        // Randomly select animals up to the delivery size specified in Config.java
         for (int i = 0; i < totalAnimals; i++) {
-            String animal = animalTypes[random.nextInt(animalTypes.length)];
+            String animal = animalTypes[staticRandom.nextInt(animalTypes.length)];
             animals.add(animal);
         }
 
         return animals;
-    }
-
-    private String formatDelivery(List<String> animals) {
-    Map<String, Integer> counts = new HashMap<>();
-    for (String animal : animals) {
-        counts.put(animal, counts.getOrDefault(animal, 0) + 1);
-    }
-    
-    StringBuilder sb = new StringBuilder();
-    boolean first = true;
-    
-    List<String> sortedTypes = new ArrayList<>(counts.keySet());
-    Collections.sort(sortedTypes);
-    
-    for (String type : sortedTypes) {
-        int count = counts.get(type);
-        if (count > 0) {
-            if (!first) {
-                sb.append(" ");
-            }
-            sb.append(type).append("=").append(count);
-            first = false;
-        }
-    }
-    
-    return sb.toString();
     }
 }

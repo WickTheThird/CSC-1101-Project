@@ -4,12 +4,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -32,7 +28,6 @@ public class FarmGUI extends JFrame {
     private final Farm farm;
     private int farmerCounter;
     private int buyerCounter;
-    private final Random random = new Random();
 
     public FarmGUI(TickManager tickManager, Farm farm) {
         this.tickManager = tickManager;
@@ -144,7 +139,6 @@ public class FarmGUI extends JFrame {
         }
     }
 
-    // Duplicated from delivery manager (find a way to combine, maybe a utility class or something like that)
     private void addNewBuyer() {
         if (!simulationEnded && farm != null) {
             buyerCounter++;
@@ -155,57 +149,16 @@ public class FarmGUI extends JFrame {
         }
     }
 
-    // Kind of duplicate
     private void addDelivery() {
         if (!simulationEnded && farm != null) {
-            List<String> animals = generateDelivery();
+            List<String> animals = DeliveryManager.generateDelivery();
 
-            FarmLogger.logDelivery(formatDelivery(animals));
+            FarmLogger.logDelivery(FarmLogger.formatDelivery(animals));
 
             farm.addToEnclosure(animals);
 
             System.out.println("Manual delivery added to the farm");
         }
-    }
-
-    private List<String> generateDelivery() {
-        List<String> animals = new ArrayList<>();
-        int totalAnimals = Config.DELIVERY_SIZE;
-        String[] animalTypes = {"pigs", "cows", "sheep", "llamas", "chickens"};
-
-        for (int i = 0; i < totalAnimals; i++) {
-            String animal = animalTypes[random.nextInt(animalTypes.length)];
-            animals.add(animal);
-        }
-
-        return animals;
-    }
-
-    // Again, this needs to be combined with delivery manager stuff because it's a mess at the moment
-    private String formatDelivery(List<String> animals) {
-        Map<String, Integer> counts = new HashMap<>();
-        for (String animal : animals) {
-            counts.put(animal, counts.getOrDefault(animal, 0) + 1);
-        }
-
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-
-        List<String> sortedTypes = new ArrayList<>(counts.keySet());
-        Collections.sort(sortedTypes);
-
-        for (String type : sortedTypes) {
-            int count = counts.get(type);
-            if (count > 0) {
-                if (!first) {
-                    sb.append(" ");
-                }
-                sb.append(type).append("=").append(count);
-                first = false;
-            }
-        }
-
-        return sb.toString();
     }
 
     public void update() {
