@@ -122,10 +122,10 @@ public class FarmLogger {
         
         if (waitedTicks > 0) {
             System.out.println(tickCount + " " + threadId + " buyer=" + buyerName + 
-                    " bought 1 animal from " + fieldName + " waited_ticks=" + waitedTicks);
+                    " collected_from_field=" + fieldName + " waited_ticks=" + waitedTicks);
         } else {
             System.out.println(tickCount + " " + threadId + " buyer=" + buyerName + 
-                    " bought 1 animal from " + fieldName);
+                    " collected_from_field=" + fieldName);
         }
     }
     
